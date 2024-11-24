@@ -1,21 +1,21 @@
-import Link from 'next/link';
-import { useState } from 'react';
-import Image from 'next/image';
+import Link from "next/link";
+import { useState } from "react";
+import Image from "next/image";
 
 interface NavigationItem {
   name: string;
   href: string;
 }
-
+import "@/styles/globals.css";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation: NavigationItem[] = [
-    { name: 'Solutions', href: '/solutions' },
-    { name: 'Technology', href: '/technology' },
-    { name: 'Industries', href: '/industries' },
-    { name: 'Resources', href: '/resources' },
-    { name: 'Contact', href: '/contact' },
+    { name: "Solutions", href: "/solutions" },
+    { name: "Technology", href: "/technology" },
+    { name: "Industries", href: "/industries" },
+    { name: "Resources", href: "/resources" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
@@ -100,4 +100,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;

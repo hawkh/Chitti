@@ -1,0 +1,11 @@
+node_modules/
+.vscode
+logs
+*.logs
+.env 
+.next/
+out/
+*.tgz
+.eslintcache 
+.tsbuildinfo 
+.cache-loader/

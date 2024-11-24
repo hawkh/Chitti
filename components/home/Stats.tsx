@@ -1,17 +1,22 @@
+import React from "react";
+import "@/styles/globals.css";
 const stats = [
-  { id: 1, name: 'Defect Detection Rate', value: '99.9%' },
-  { id: 2, name: 'Processing Speed', value: '<50ms' },
-  { id: 3, name: 'Cost Reduction', value: '40%' },
-  { id: 4, name: 'Happy Clients', value: '500+' },
+  { id: 1, name: "Defect Detection Rate", value: "99.9%" },
+  { id: 2, name: "Processing Speed", value: "<50ms" },
+  { id: 3, name: "Cost Reduction", value: "40%" },
+  { id: 4, name: "Happy Clients", value: "500+" },
 ];
-
+import "@/styles/globals.css";
 const Stats = () => {
   return (
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-4">
           {stats.map((stat) => (
-            <div key={stat.id} className="mx-auto flex max-w-xs flex-col gap-y-4">
+            <div
+              key={stat.id}
+              className="mx-auto flex max-w-xs flex-col gap-y-4"
+            >
               <dt className="text-base leading-7 text-gray-600">{stat.name}</dt>
               <dd className="order-first text-3xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
                 {stat.value}
@@ -24,4 +29,4 @@ const Stats = () => {
   );
 };
 
-export default Stats; 
+export default Stats;

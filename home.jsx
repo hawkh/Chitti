@@ -1,27 +1,41 @@
-import React from 'react';
-import { ArrowRight, Check, ChevronRight, Monitor, Shield, Zap } from 'lucide-react';
-
+import React from "react";
+import {
+  ArrowRight,
+  Check,
+  ChevronRight,
+  Monitor,
+  Shield,
+  Zap,
+} from "lucide-react";
+import "@/styles/globals.css";
 const Homepage = () => {
   const features = [
     {
       title: "Real-time Detection",
-      description: "Monitor and detect defects in real-time with our advanced AI algorithms",
-      icon: Monitor
+      description:
+        "Monitor and detect defects in real-time with our advanced AI algorithms",
+      icon: Monitor,
     },
     {
       title: "High Accuracy",
-      description: "Industry-leading accuracy rates backed by deep learning technology",
-      icon: Check
+      description:
+        "Industry-leading accuracy rates backed by deep learning technology",
+      icon: Check,
     },
     {
       title: "Fast Integration",
-      description: "Seamlessly integrate with your existing manufacturing processes",
-      icon: Zap
-    }
+      description:
+        "Seamlessly integrate with your existing manufacturing processes",
+      icon: Zap,
+    },
   ];
 
   const industries = [
-    "Automotive", "Electronics", "Aerospace", "Pharmaceuticals", "Food Processing"
+    "Automotive",
+    "Electronics",
+    "Aerospace",
+    "Pharmaceuticals",
+    "Food Processing",
   ];
 
   return (
@@ -34,7 +48,8 @@ const Homepage = () => {
               Revolutionizing Quality Control with AI-Powered Defect Detection
             </h1>
             <p className="text-xl mb-8">
-              Transform your manufacturing process with real-time AI detection that spots defects with unprecedented accuracy.
+              Transform your manufacturing process with real-time AI detection
+              that spots defects with unprecedented accuracy.
             </p>
             <div className="flex gap-4">
               <button className="bg-white text-blue-900 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition flex items-center">
@@ -74,7 +89,10 @@ const Homepage = () => {
           </h2>
           <div className="grid md:grid-cols-5 gap-6">
             {industries.map((industry, index) => (
-              <div key={index} className="text-center p-6 border rounded-lg hover:border-blue-500 transition cursor-pointer">
+              <div
+                key={index}
+                className="text-center p-6 border rounded-lg hover:border-blue-500 transition cursor-pointer"
+              >
                 <p className="font-medium">{industry}</p>
               </div>
             ))}
