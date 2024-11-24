@@ -1,6 +1,8 @@
-import Image from 'next/image';
-import Link from 'next/link';
-
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
+import "@/styles/globals.css";
+import bg from "../../app/assets/images/ai_bg.jpg";
 export default function Hero(): JSX.Element {
   return (
     <div className="relative bg-gradient-to-b from-blue-50 to-white pt-20">
@@ -11,8 +13,9 @@ export default function Hero(): JSX.Element {
               AI-Powered Defect Detection for Modern Manufacturing
             </h1>
             <p className="text-xl text-gray-600">
-              Enhance quality control with real-time AI detection that spots defects 
-              with 99.9% accuracy, reducing waste and improving production efficiency.
+              Enhance quality control with real-time AI detection that spots
+              defects with 99.9% accuracy, reducing waste and improving
+              production efficiency.
             </p>
             <div className="space-x-4">
               <Link
@@ -31,18 +34,20 @@ export default function Hero(): JSX.Element {
           </div>
           <div className="relative h-[400px] md:h-[500px]">
             <Image
-              src="/images/hero-image.jpg"
+              src={bg}
               alt="AI Detection Demo"
-              fill
               className="object-cover rounded-xl shadow-2xl"
-              priority
+              fill={true}
+              priority={true}
             />
           </div>
         </div>
-        
+
         {/* Trust Indicators */}
         <div className="mt-16 pt-8 border-t border-gray-200">
-          <p className="text-center text-gray-600 mb-8">Trusted by industry leaders</p>
+          <p className="text-center text-gray-600 mb-8">
+            Trusted by industry leaders
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center opacity-70">
             {/* Add partner logos here */}
           </div>
@@ -50,4 +55,4 @@ export default function Hero(): JSX.Element {
       </div>
     </div>
   );
-} 
+}

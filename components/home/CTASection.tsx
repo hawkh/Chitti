@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import Button from '../shared/Button';
-
+import Link from "next/link";
+import Button from "../shared/Button";
+import "@/styles/globals.css";
 const CTASection = () => {
   return (
     <section className="bg-blue-600">
@@ -19,7 +19,11 @@ const CTASection = () => {
               </Button>
             </Link>
             <Link href="/contact">
-              <Button variant="outline" size="lg" className="text-white border-white hover:bg-blue-700">
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-white border-white hover:bg-blue-700"
+              >
                 Contact Sales
               </Button>
             </Link>
@@ -30,4 +34,4 @@ const CTASection = () => {
   );
 };
 
-export default CTASection; 
+export default CTASection;

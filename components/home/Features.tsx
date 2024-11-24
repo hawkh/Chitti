@@ -1,24 +1,26 @@
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import React from "react";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
 const features = [
   {
-    title: 'Real-time Detection',
-    description: 'Identify defects instantly with our advanced AI algorithms',
+    title: "Real-time Detection",
+    description: "Identify defects instantly with our advanced AI algorithms",
     icon: CheckCircleIcon,
   },
   {
-    title: '99.9% Accuracy',
-    description: 'Industry-leading precision in defect detection',
+    title: "99.9% Accuracy",
+    description: "Industry-leading precision in defect detection",
     icon: CheckCircleIcon,
   },
   {
-    title: 'Easy Integration',
-    description: 'Seamlessly integrate with your existing manufacturing systems',
+    title: "Easy Integration",
+    description:
+      "Seamlessly integrate with your existing manufacturing systems",
     icon: CheckCircleIcon,
   },
   {
-    title: 'Cost Effective',
-    description: 'Reduce waste and improve quality control efficiency',
+    title: "Cost Effective",
+    description: "Reduce waste and improve quality control efficiency",
     icon: CheckCircleIcon,
   },
 ];
@@ -32,7 +34,8 @@ const Features = () => {
             Advanced Features for Modern Manufacturing
           </h2>
           <p className="mt-4 text-xl text-gray-600">
-            Our AI-powered solution provides comprehensive defect detection capabilities
+            Our AI-powered solution provides comprehensive defect detection
+            capabilities
           </p>
         </div>
 
@@ -40,17 +43,15 @@ const Features = () => {
           {features.map((feature, index) => (
             <div key={index} className="relative">
               <div className="space-y-6">
-                <feature.icon 
-                  className="h-12 w-12 text-blue-600" 
-                  aria-hidden="true" 
+                <feature.icon
+                  className="h-12 w-12 text-blue-600"
+                  aria-hidden="true"
                 />
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
                     {feature.title}
                   </h3>
-                  <p className="mt-2 text-gray-600">
-                    {feature.description}
-                  </p>
+                  <p className="mt-2 text-gray-600">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -61,4 +62,4 @@ const Features = () => {
   );
 };
 
-export default Features; 
+export default Features;
