@@ -1,7 +1,8 @@
+"use client";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-
+import Logo from "../../app/assets/images/logo.png";
 interface NavigationItem {
   name: string;
   href: string;
@@ -24,7 +25,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center space-x-3">
             <Image
-              src="/images/logo.svg"
+              src={Logo}
               alt="AI Defect Detection"
               width={40}
               height={40}
@@ -35,13 +36,13 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
+            {navigation.map(({ name, href }) => (
               <Link
-                key={item.name}
-                href={item.href}
+                key={name}
+                href={href}
                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
               >
-                {item.name}
+                {name}
               </Link>
             ))}
             <Link
