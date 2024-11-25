@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import "@/styles/globals.css";
-import bg from "../../app/assets/images/ai_bg.jpg";
+import bg from "../../app/assets/images/hero_bg.svg";
 export default function Hero(): JSX.Element {
   return (
     <div className="relative bg-gradient-to-b from-blue-50 to-white pt-20">
@@ -20,19 +20,19 @@ export default function Hero(): JSX.Element {
             <div className="space-x-4">
               <Link
                 href="/demo"
-                className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Request Demo
               </Link>
               <Link
                 href="/technology"
-                className="inline-block border border-blue-600 text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors"
+                className="inline-block border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
               >
                 Learn More
               </Link>
             </div>
           </div>
-          <div className="relative h-[400px] md:h-[500px]">
+          <div className="relative h-[400px] md:h-[500px] ">
             <Image
               src={bg}
               alt="AI Detection Demo"
