@@ -10,15 +10,13 @@ const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 const TEMP_DIR = path.join(UPLOAD_DIR, 'temp');
 const PROCESSED_DIR = path.join(UPLOAD_DIR, 'processed');
 
-interface RouteContext {
-  params: Promise<{
-    filename: string;
-  }>;
-}
+type RouteParams = {
+  params: { filename: string };
+};
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { filename } = await params;
+    const { filename } = params;
     
     if (!filename) {
       return NextResponse.json(
@@ -130,9 +128,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 }
 
 // Delete file endpoint
-export async function DELETE(request: NextRequest, { params }: RouteContext) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { filename } = await params;
+    const { filename } = params;
     
     if (!filename) {
       return NextResponse.json(
@@ -191,9 +189,9 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 }
 
 // Get file metadata
-export async function HEAD(request: NextRequest, { params }: RouteContext) {
+export async function HEAD(request: NextRequest, { params }: RouteParams) {
   try {
-    const { filename } = await params;
+    const { filename } = params;
     
     if (!filename) {
       return new NextResponse(null, { status: 400 });

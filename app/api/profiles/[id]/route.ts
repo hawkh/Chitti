@@ -5,11 +5,9 @@ import { NextRequest, NextResponse } from 'next/server';
 // This would normally import from a database service
 // For now, we'll use the same in-memory storage pattern
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
+type RouteParams = {
+  params: { id: string };
+};
 
 // GET /api/profiles/[id] - Get specific profile
 export async function GET(request: NextRequest, { params }: RouteParams) {
