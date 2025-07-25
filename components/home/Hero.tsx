@@ -1,34 +1,32 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import "@/styles/globals.css";
 import bg from "../../app/assets/images/hero_bg.svg";
 export default function Hero(): JSX.Element {
   return (
-    <div className="relative bg-gradient-to-b from-blue-50 to-white pt-20">
+    <div className="relative bg-gradient-to-b from-blue-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
-              AI-Powered Defect Detection for Modern Manufacturing
+              Live AI Defect Detection System
             </h1>
             <p className="text-xl text-gray-600">
-              Enhance quality control with real-time AI detection that spots
-              defects with 99.9% accuracy, reducing waste and improving
-              production efficiency.
+              Experience real-time YOLO AI detection with live camera feed.
+              Try it instantly below - no setup required.
             </p>
             <div className="space-x-4">
               <Link
-                href="/demo"
+                href="/integrated-detection"
                 className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Request Demo
+                Try Live Demo
               </Link>
               <Link
-                href="/technology"
+                href="/detection"
                 className="inline-block border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
               >
-                Learn More
+                Quick Start
               </Link>
             </div>
           </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Button from "../shared/Button";
-import "@/styles/globals.css";
+import Button from "@/components/shared/Button";
 const CTASection = () => {
   return (
     <section className="bg-blue-600">
@@ -10,21 +9,21 @@ const CTASection = () => {
             Ready to transform your quality control?
           </h2>
           <p className="mt-4 text-lg text-blue-100">
-            Get started with AI-powered defect detection today.
+            Experience live AI detection with your camera or upload images instantly.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            <Link href="/demo">
+            <Link href="/integrated-detection">
               <Button variant="secondary" size="lg">
-                Request Demo
+                Full System
               </Button>
             </Link>
-            <Link href="/contact">
+            <Link href="/detection">
               <Button
                 variant="outline"
                 size="lg"
                 className="text-white border-white hover:bg-blue-700"
               >
-                Contact Sales
+                Quick Start
               </Button>
             </Link>
           </div>

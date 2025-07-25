@@ -1,27 +1,26 @@
 import React from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { Zap, Target, Cog, DollarSign } from "lucide-react";
 
 const features = [
   {
-    title: "Real-time Detection",
-    description: "Identify defects instantly with our advanced AI algorithms",
-    icon: CheckCircleIcon,
+    title: "AI-Powered Detection",
+    description: "YOLO-based defect detection with 92% accuracy",
+    icon: Zap,
   },
   {
-    title: "99.9% Accuracy",
-    description: "Industry-leading precision in defect detection",
-    icon: CheckCircleIcon,
+    title: "Integrated Workflow",
+    description: "Complete detection pipeline from upload to reporting",
+    icon: Target,
   },
   {
-    title: "Easy Integration",
-    description:
-      "Seamlessly integrate with your existing manufacturing systems",
-    icon: CheckCircleIcon,
+    title: "Component Profiles",
+    description: "Customizable detection parameters for different materials",
+    icon: Cog,
   },
   {
-    title: "Cost Effective",
-    description: "Reduce waste and improve quality control efficiency",
-    icon: CheckCircleIcon,
+    title: "Analytics Dashboard",
+    description: "Comprehensive insights and performance metrics",
+    icon: DollarSign,
   },
 ];
 

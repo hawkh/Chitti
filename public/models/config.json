@@ -1,0 +1,45 @@
+{
+  "models": {
+    "yolo-defect-detector": {
+      "name": "YOLO Defect Detector",
+      "version": "1.0.0",
+      "description": "YOLO-based defect detection model for NDT applications",
+      "modelUrl": "/models/yolo-defect-detector/model.json",
+      "weightsUrl": "/models/yolo-defect-detector/weights.bin",
+      "inputSize": {
+        "width": 640,
+        "height": 640
+      },
+      "numClasses": 6,
+      "classNames": [
+        "crack",
+        "corrosion", 
+        "deformation",
+        "surface_irregularity",
+        "inclusion",
+        "void"
+      ],
+      "anchors": [
+        [10, 13],
+        [16, 30], 
+        [33, 23],
+        [30, 61],
+        [62, 45],
+        [59, 119],
+        [116, 90],
+        [156, 198],
+        [373, 326]
+      ],
+      "confidenceThreshold": 0.5,
+      "nmsThreshold": 0.4,
+      "supportedMaterials": ["metal", "plastic", "composite", "ceramic"],
+      "trainingInfo": {
+        "dataset": "Custom NDT Defect Dataset",
+        "epochs": 100,
+        "accuracy": 0.92,
+        "mAP": 0.87
+      }
+    }
+  },
+  "defaultModel": "yolo-defect-detector"
+}

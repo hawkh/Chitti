@@ -19,9 +19,9 @@ const Button = ({
   const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors';
   
   const variants: Record<ButtonVariant, string> = {
-    primary: 'bg-brand text-white hover:bg-brand-dark',
-    secondary: 'bg-secondary text-white hover:bg-secondary/90',
-    outline: 'border border-brand text-brand hover:bg-brand/10'
+    primary: 'bg-blue-600 text-white hover:bg-blue-700',
+    secondary: 'bg-gray-600 text-white hover:bg-gray-700',
+    outline: 'border border-blue-600 text-blue-600 hover:bg-blue-50'
   };
 
   const sizes: Record<ButtonSize, string> = {

@@ -2,36 +2,31 @@
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-import Logo from "../../app/assets/images/logo.png";
+// Logo will be loaded from public directory
+
 interface NavigationItem {
   name: string;
   href: string;
 }
-import "@/styles/globals.css";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation: NavigationItem[] = [
-    { name: "Solutions", href: "/solutions" },
-    { name: "Technology", href: "/technology" },
-    { name: "Industries", href: "/industries" },
-    { name: "Resources", href: "/resources" },
-    { name: "Contact", href: "/contact" },
+    { name: "Detection", href: "/detection" },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Full System", href: "/integrated-detection" },
+    { name: "About", href: "/#features" },
   ];
 
   return (
-    <header className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
+    <header className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center space-x-3">
-            <Image
-              src={Logo}
-              alt="AI Defect Detection"
-              width={40}
-              height={40}
-              priority
-            />
-            <span className="font-bold text-xl text-gray-900">AIDefect</span>
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">C</span>
+            </div>
+            <span className="font-bold text-xl text-gray-900">Chitti AI NDT</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -46,10 +41,10 @@ const Header = () => {
               </Link>
             ))}
             <Link
-              href="/demo"
+              href="/detection"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
-              Request Demo
+              Start Detection
             </Link>
           </nav>
 

@@ -1,12 +1,11 @@
 import React from "react";
-import "@/styles/globals.css";
+
 const stats = [
-  { id: 1, name: "Defect Detection Rate", value: "99.9%" },
-  { id: 2, name: "Processing Speed", value: "<50ms" },
-  { id: 3, name: "Cost Reduction", value: "40%" },
-  { id: 4, name: "Happy Clients", value: "500+" },
+  { id: 1, name: "Defect Detection Accuracy", value: "92%" },
+  { id: 2, name: "Processing Speed", value: "1-2s" },
+  { id: 3, name: "Supported Formats", value: "4+" },
+  { id: 4, name: "Defect Types", value: "6+" },
 ];
-import "@/styles/globals.css";
 const Stats = () => {
   return (
     <div className="bg-white py-24 sm:py-32">

@@ -1,13 +1,13 @@
 import React from "react";
+import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import Features from "@/components/home/Features";
-// import Testimonials from "@/components/home/Testimonials";
 import CTASection from "@/components/home/CTASection";
-// import Industries from "@/components/home/Industries";
 import Stats from "@/components/home/Stats";
-import "@/styles/globals.css";
 import Header from "@/components/layout/Header";
-import Footer from "src/components/layout/Footer";
+import Footer from "@/src/components/layout/Footer";
+import LiveDemo from "@/components/LiveDemo";
+import RealTimeStats from "@/components/RealTimeStats";
 export default function Home() {
   return (
     <>
@@ -15,8 +15,10 @@ export default function Home() {
       <Hero />
       <Stats />
       <Features />
-      {/* <Industries /> */}
-      {/* <Testimonials /> */}
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <LiveDemo />
+        <RealTimeStats />
+      </div>
       <CTASection />
       <Footer />
     </>

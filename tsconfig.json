@@ -9,9 +9,24 @@
       "@/styles/*": [
         "styles/*"
       ], // Alias for styles directory
-      "@/utils/*": [
-        "utils/*"
-      ] // Alias for utilities directory
+      "@/app/*": [
+        "app/*"
+      ], // Alias for app directory
+      "@/src/*": [
+        "src/*"
+      ], // Alias for src directory
+      "@/types": [
+        "types"
+      ], // Alias for types directory
+      "@/types/*": [
+        "types/*"
+      ], // Alias for types directory files
+      "@/lib/*": [
+        "lib/*"
+      ], // Alias for lib directory
+      "@/services/*": [
+        "services/*"
+      ] // Alias for services directory
     },
     "allowSyntheticDefaultImports": true, // Enable default imports for CommonJS modules
     "esModuleInterop": true, // Required for compatibility with CommonJS modules

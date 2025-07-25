@@ -1,6 +1,5 @@
 import React from "react";
 import { Twitter, Linkedin, Github } from "lucide-react";
-import "@/styles/globals.css";
 
 const Footer = () => {
   const navigation = {
@@ -64,7 +63,7 @@ const Footer = () => {
 
         {/* Footer Text */}
         <p className="mt-4 text-center text-sm text-gray-500">
-          &copy; 2024 AI Defect Detection. All rights reserved.
+          &copy; 2024 Chitti AI NDT. All rights reserved.
         </p>
       </div>
     </footer>
