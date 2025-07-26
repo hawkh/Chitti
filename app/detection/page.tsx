@@ -10,7 +10,7 @@ import { ModelManager } from '@/services/ai/ModelManager';
 import { ReportGenerator } from '@/services/report/ReportGenerator';
 import { ReportExporter } from '@/services/report/ReportExporter';
 import { AuditLogger } from '@/services/AuditLogger';
-import { ProcessingFile, DetectionResult, DetectionConfig, MaterialType, DefectType } from '@/types';
+import { ProcessingFile, DetectionResult, DetectionConfig, MaterialType, DefectType, ComponentProfile } from '@/types';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const DEFAULT_DETECTION_CONFIG: DetectionConfig = {
@@ -147,28 +147,31 @@ export default function DetectionPage() {
       const reportExporter = new ReportExporter();
 
       // Create a mock profile for the report
-      const mockProfile = {
+      const mockProfile: ComponentProfile = {
         id: 'default-profile',
         name: 'General Component Inspection',
-        description: 'Default inspection profile',
         materialType: MaterialType.METAL,
-        applicableDefectTypes: [DefectType.CRACK, DefectType.CORROSION, DefectType.DEFORMATION],
-        detectionThresholds: {
-          confidenceThreshold: 0.7,
-          severityThresholds: {
-            low: 0.5,
-            medium: 0.7,
-            high: 0.85,
-            critical: 0.95
-          } as any
-        },
-        imageRequirements: {
-          minResolution: { width: 640, height: 480 },
-          maxFileSize: 10485760,
-          acceptedFormats: ['image/jpeg', 'image/png']
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        criticalDefects: [DefectType.CRACK, DefectType.CORROSION, DefectType.DEFORMATION],
+        defaultSensitivity: 0.7,
+        qualityStandards: ['ISO 9001'],
+        customParameters: {
+          description: 'Default inspection profile',
+          applicableDefectTypes: [DefectType.CRACK, DefectType.CORROSION, DefectType.DEFORMATION],
+          detectionThresholds: {
+            confidenceThreshold: 0.7,
+            severityThresholds: {
+              low: 0.5,
+              medium: 0.7,
+              high: 0.85,
+              critical: 0.95
+            }
+          },
+          imageRequirements: {
+            minResolution: { width: 640, height: 480 },
+            maxFileSize: 10485760,
+            acceptedFormats: ['image/jpeg', 'image/png']
+          }
+        }
       };
 
       const report = reportGenerator.generateInspectionReport(

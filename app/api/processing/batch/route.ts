@@ -53,7 +53,13 @@ export async function POST(request: NextRequest) {
 
     // Add job to processing queue
     const queue = ProcessingQueue.getInstance();
-    const jobId = await queue.addJob(processingFiles, config, userId, priority);
+    const job = queue.addJob({
+      userId,
+      files: processingFiles,
+      config,
+      priority
+    });
+    const jobId = job.id;
 
     return NextResponse.json({
       success: true,
@@ -90,7 +96,8 @@ export async function GET(request: NextRequest) {
 
     if (jobId) {
       // Get specific job status
-      const status = queue.getJobStatus(jobId);
+      const job = queue.getJob(jobId);
+      const status = job;
       
       if (!status) {
         return NextResponse.json({
@@ -109,8 +116,15 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // Get all jobs (optionally filtered by user)
-      const jobs = queue.getAllJobs(userId || undefined);
-      const stats = queue.getQueueStats();
+      const allJobs = queue.getAllJobs();
+      const jobs = userId ? allJobs.filter(job => job.userId === userId) : allJobs;
+      const stats = {
+        total: allJobs.length,
+        queued: allJobs.filter(j => j.status === 'queued').length,
+        processing: allJobs.filter(j => j.status === 'processing').length,
+        completed: allJobs.filter(j => j.status === 'completed').length,
+        failed: allJobs.filter(j => j.status === 'failed').length
+      };
 
       return NextResponse.json({
         success: true,
@@ -160,17 +174,30 @@ export async function DELETE(request: NextRequest) {
     }
 
     const queue = ProcessingQueue.getInstance();
-    const cancelled = await queue.cancelJob(jobId);
+    const job = queue.getJob(jobId);
 
-    if (!cancelled) {
+    if (!job) {
       return NextResponse.json({
         success: false,
         error: {
-          message: 'Job not found or cannot be cancelled',
-          code: 'CANCEL_FAILED'
+          message: 'Job not found',
+          code: 'JOB_NOT_FOUND'
         }
       }, { status: 404 });
     }
+
+    if (job.status === 'processing' || job.status === 'completed') {
+      return NextResponse.json({
+        success: false,
+        error: {
+          message: 'Job cannot be cancelled',
+          code: 'CANCEL_FAILED'
+        }
+      }, { status: 400 });
+    }
+
+    // Simple cancellation - just mark as cancelled
+    job.status = 'cancelled' as any;
 
     return NextResponse.json({
       success: true,

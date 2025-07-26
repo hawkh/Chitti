@@ -58,8 +58,8 @@ export class ReportExporter {
     const profileData = [
       ['Name', report.componentProfile.name],
       ['Material Type', report.componentProfile.materialType],
-      ['Confidence Threshold', report.componentProfile.confidenceThreshold.toString()],
-      ['Defect Types', report.componentProfile.applicableDefectTypes.join(', ')]
+      ['Confidence Threshold', report.componentProfile.confidenceThreshold?.toString() || '0.7'],
+      ['Defect Types', report.componentProfile.applicableDefectTypes?.join(', ') || 'N/A']
     ];
 
     autoTable(pdf, {

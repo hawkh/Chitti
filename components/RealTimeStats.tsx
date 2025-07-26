@@ -101,7 +101,7 @@ export default function RealTimeStats() {
 
       <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>Last updated: {new Date().toLocaleTimeString()}</span>
+          <span>Last updated: Live</span>
           <span>Uptime: 99.8%</span>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart3, FileText, Activity, TrendingUp, Download } from 'lucide-react';
-import { DetectionResult, ResultStatus, DefectSeverity } from '@/types';
+import { DetectionResult, ResultStatus, DefectSeverity, ComponentProfile, MaterialType, DefectType } from '@/types';
 import { ReportGenerator } from '@/services/report/ReportGenerator';
 import { ReportExporter } from '@/services/report/ReportExporter';
 import { AuditLogger } from '@/services/AuditLogger';
@@ -55,28 +55,31 @@ const mockResults: DetectionResult[] = [
   }
 ];
 
-const mockProfile = {
+const mockProfile: ComponentProfile = {
   id: 'profile-1',
   name: 'General Metal Inspection',
-  description: 'Standard profile for metal components',
-  materialType: 'metal' as const,
-  applicableDefectTypes: ['crack-001', 'corrosion-001'],
-  detectionThresholds: {
-    confidenceThreshold: 0.7,
-    severityThresholds: {
-      low: 0.5,
-      medium: 0.7,
-      high: 0.85,
-      critical: 0.95
-    } as any
-  },
-  imageRequirements: {
-    minResolution: { width: 640, height: 480 },
-    maxFileSize: 10485760,
-    acceptedFormats: ['image/jpeg', 'image/png']
-  },
-  createdAt: new Date(),
-  updatedAt: new Date()
+  materialType: MaterialType.METAL,
+  criticalDefects: [DefectType.CRACK, DefectType.CORROSION],
+  defaultSensitivity: 0.7,
+  qualityStandards: ['ISO 9001', 'ASTM E165'],
+  customParameters: {
+    description: 'Standard profile for metal components',
+    applicableDefectTypes: ['crack-001', 'corrosion-001'],
+    detectionThresholds: {
+      confidenceThreshold: 0.7,
+      severityThresholds: {
+        low: 0.5,
+        medium: 0.7,
+        high: 0.85,
+        critical: 0.95
+      }
+    },
+    imageRequirements: {
+      minResolution: { width: 640, height: 480 },
+      maxFileSize: 10485760,
+      acceptedFormats: ['image/jpeg', 'image/png']
+    }
+  }
 };
 
 export default function DashboardPage() {
@@ -120,7 +123,7 @@ export default function DashboardPage() {
       );
 
       await reportExporter.downloadReport(report, format);
-      auditLogger.log('user', AuditLogger.ACTIONS.REPORT_DOWNLOAD, { format, reportId: report.id });
+      auditLogger.log('user', AuditLogger.ACTIONS.REPORT_DOWNLOAD, { format, reportId: report.metadata.id });
     } catch (error) {
       console.error('Failed to generate report:', error);
     } finally {

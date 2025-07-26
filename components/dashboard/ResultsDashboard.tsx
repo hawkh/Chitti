@@ -1,23 +1,58 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Calendar, Download, Filter, Search, Eye, FileText, AlertCircle, CheckCircle, Clock } from 'lucide-react';
-import { DetectionResult, DefectSeverity, ResultStatus } from '@/types';
-import { DateUtils, DefectUtils } from '@/lib/utils';
-
-interface ResultsFilter {
-  dateRange: { start: Date; end: Date };
-  defectTypes: string[];
-  severityLevels: DefectSeverity[];
-  status: ResultStatus[];
-}
+import { 
+  Search, 
+  Download, 
+  Eye, 
+  AlertCircle, 
+  CheckCircle, 
+  Clock, 
+  BarChart3 
+} from 'lucide-react';
+import { DetectionResult, DefectSeverity, ResultStatus } from '../../types';
 
 interface ResultsDashboardProps {
   results: DetectionResult[];
   onResultSelect: (result: DetectionResult) => void;
-  onExport: (format: 'pdf' | 'json' | 'csv') => void;
-  filters: ResultsFilter;
+  onExport?: (format: 'pdf' | 'json' | 'csv') => void;
+  filters?: {
+    dateRange: { start: Date; end: Date };
+    defectTypes: string[];
+    severityLevels: string[];
+    status: string[];
+  };
 }
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  color: 'blue' | 'green' | 'red' | 'purple';
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
+  const colorClasses = {
+    blue: 'text-blue-600 bg-blue-100',
+    green: 'text-green-600 bg-green-100',
+    red: 'text-red-600 bg-red-100',
+    purple: 'text-purple-600 bg-purple-100'
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   results,
@@ -25,60 +60,247 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   onExport,
   filters
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'timestamp' | 'fileName' | 'status'>('timestamp');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | ResultStatus>('all');
+  const [filterSeverity, setFilterSeverity] = useState<DefectSeverity | 'all'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'status' | 'defects'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const filteredResults = useMemo(() => {
-    return results
-      .filter(result => {
-        // Search filter
-        if (searchTerm && !result.fileName.toLowerCase().includes(searchTerm.toLowerCase())) {
-          return false;
-        }
-        
-        // Status filter
-        if (filters.status.length > 0 && !filters.status.includes(result.overallStatus)) {
-          return false;
-        }
+  // Filter and sort results
+  const processedResults = useMemo(() => {
+    let filtered = results.filter(result => {
+      // Status filter
+      if (filterStatus !== 'all' && result.overallStatus !== filterStatus) {
+        return false;
+      }
 
-        // Date range filter
-        if (result.timestamp < filters.dateRange.start || result.timestamp > filters.dateRange.end) {
-          return false;
-        }
+      // Severity filter
+      if (filterSeverity !== 'all') {
+        const hasMatchingSeverity = result.detectedDefects.some(defect => defect.severity === filterSeverity);
+        if (!hasMatchingSeverity) return false;
+      }
 
-        return true;
-      })
-      .sort((a, b) => {
-        let comparison = 0;
-        
-        switch (sortBy) {
-          case 'timestamp':
-            comparison = a.timestamp.getTime() - b.timestamp.getTime();
-            break;
-          case 'fileName':
-            comparison = a.fileName.localeCompare(b.fileName);
-            break;
-          case 'status':
-            comparison = a.overallStatus.localeCompare(b.overallStatus);
-            break;
-        }
-        
-        return sortOrder === 'asc' ? comparison : -comparison;
-      });
-  }, [results, searchTerm, sortBy, sortOrder, filters]);
+      // Search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          result.id.toLowerCase().includes(query) ||
+          result.fileName.toLowerCase().includes(query) ||
+          result.detectedDefects.some(d => d.defectType.name.toLowerCase().includes(query))
+        );
+      }
 
-  const getStatusIcon = (status: ResultStatus) => {
-    switch (status) {
-      case ResultStatus.PASS:
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case ResultStatus.FAIL:
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case ResultStatus.REVIEW:
-        return <Clock className="w-5 h-5 text-yellow-500" />;
-    }
-  };
+      return true;
+    });
 
+    // Sort results
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'date':
+          comparison = a.timestamp.getTime() - b.timestamp.getTime();
+          break;
+        case 'status':
+          comparison = a.overallStatus.localeCompare(b.overallStatus);
+          break;
+        case 'defects':
+          comparison = a.detectedDefects.length - b.detectedDefects.length;
+          break;
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [results, searchQuery, filterStatus, filterSeverity, sortBy, sortOrder]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const total = results.length;
+    const passed = results.filter(r => r.overallStatus === ResultStatus.PASS).length;
+    const failed = results.filter(r => r.overallStatus === ResultStatus.FAIL).length;
+    const avgProcessingTime = results.reduce((sum, r) => sum + r.processingTime, 0) / total || 0;
+
+    return {
+      total,
+      passed,
+      failed,
+      passRate: total > 0 ? (passed / total) * 100 : 0,
+      avgProcessingTime
+    };
+  }, [results]);
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Inspections"
+          value={stats.total}
+          icon={<BarChart3 className="h-5 w-5" />}
+          color="blue"
+        />
+        <StatCard
+          title="Pass Rate"
+          value={`${stats.passRate.toFixed(1)}%`}
+          icon={<CheckCircle className="h-5 w-5" />}
+          color="green"
+        />
+        <StatCard
+          title="Failed"
+          value={stats.failed}
+          icon={<AlertCircle className="h-5 w-5" />}
+          color="red"
+        />
+        <StatCard
+          title="Avg. Processing"
+          value={`${(stats.avgProcessingTime / 1000).toFixed(1)}s`}
+          icon={<Clock className="h-5 w-5" />}
+          color="purple"
+        />
+      </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by ID, filename, or defect type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex gap-2">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value={ResultStatus.PASS}>Passed</option>
+              <option value={ResultStatus.FAIL}>Failed</option>
+              <option value={ResultStatus.REVIEW}>Review</option>
+            </select>
+
+            <select
+              value={filterSeverity}
+              onChange={(e) => setFilterSeverity(e.target.value as any)}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Severities</option>
+              <option value={DefectSeverity.LOW}>Low</option>
+              <option value={DefectSeverity.MEDIUM}>Medium</option>
+              <option value={DefectSeverity.HIGH}>High</option>
+              <option value={DefectSeverity.CRITICAL}>Critical</option>
+            </select>
+
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [newSortBy, newSortOrder] = e.target.value.split('-');
+                setSortBy(newSortBy as any);
+                setSortOrder(newSortOrder as any);
+              }}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="date-desc">Latest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="status-asc">Status (A-Z)</option>
+              <option value="status-desc">Status (Z-A)</option>
+              <option value="defects-desc">Most Defects</option>
+              <option value="defects-asc">Least Defects</option>
+            </select>
+          </div>
+
+          {/* Export Actions */}
+          {onExport && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => onExport('pdf')}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                PDF
+              </button>
+              <button
+                onClick={() => onExport('csv')}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                CSV
+              </button>
+              <button
+                onClick={() => onExport('json')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                JSON
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Results Table */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  File
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Defects
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Processing Time
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {processedResults.map((result) => (
+                <ResultRow
+                  key={result.id}
+                  result={result}
+                  onView={() => onResultSelect(result)}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {processedResults.length === 0 && (
+          <div className="p-8 text-center">
+            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Results Found</h3>
+            <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface ResultRowProps {
+  result: DetectionResult;
+  onView: () => void;
+}
+
+const ResultRow: React.FC<ResultRowProps> = ({ result, onView }) => {
   const getStatusColor = (status: ResultStatus) => {
     switch (status) {
       case ResultStatus.PASS:
@@ -87,197 +309,72 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         return 'bg-red-100 text-red-800';
       case ResultStatus.REVIEW:
         return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getSeverityColor = (severity: DefectSeverity) => {
+    switch (severity) {
+      case DefectSeverity.LOW:
+        return 'bg-yellow-100 text-yellow-800';
+      case DefectSeverity.MEDIUM:
+        return 'bg-orange-100 text-orange-800';
+      case DefectSeverity.HIGH:
+        return 'bg-red-100 text-red-800';
+      case DefectSeverity.CRITICAL:
+        return 'bg-red-200 text-red-900';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Group defects by severity
+  const defectsBySeverity = result.detectedDefects.reduce((acc, defect) => {
+    acc[defect.severity] = (acc[defect.severity] || 0) + 1;
+    return acc;
+  }, {} as Record<DefectSeverity, number>);
+
   return (
-    <div className="space-y-6">
-      {/* Header with controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search files..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          <select
-            value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [field, order] = e.target.value.split('-');
-              setSortBy(field as typeof sortBy);
-              setSortOrder(order as typeof sortOrder);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="timestamp-desc">Newest First</option>
-            <option value="timestamp-asc">Oldest First</option>
-            <option value="fileName-asc">Name A-Z</option>
-            <option value="fileName-desc">Name Z-A</option>
-            <option value="status-asc">Status A-Z</option>
-            <option value="status-desc">Status Z-A</option>
-          </select>
+    <tr className="hover:bg-gray-50">
+      <td className="px-4 py-4">
+        <div>
+          <p className="text-sm font-medium text-gray-900">{result.fileName}</p>
+          <p className="text-xs text-gray-500">{result.timestamp.toLocaleString()}</p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onExport('pdf')}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <FileText className="w-4 h-4" />
-            PDF
-          </button>
-          <button
-            onClick={() => onExport('csv')}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            CSV
-          </button>
-          <button
-            onClick={() => onExport('json')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            JSON
-          </button>
+      </td>
+      <td className="px-4 py-4">
+        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(result.overallStatus)}`}>
+          {result.overallStatus.toUpperCase()}
+        </span>
+      </td>
+      <td className="px-4 py-4">
+        <div className="flex flex-wrap gap-1">
+          {Object.entries(defectsBySeverity).map(([severity, count]) => (
+            <span
+              key={severity}
+              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(severity as DefectSeverity)}`}
+            >
+              {count} {severity}
+            </span>
+          ))}
+          {result.detectedDefects.length === 0 && (
+            <span className="text-xs text-gray-500">No defects</span>
+          )}
         </div>
-      </div>
-
-      {/* Results summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-gray-900">{filteredResults.length}</div>
-          <div className="text-sm text-gray-600">Total Results</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-green-600">
-            {filteredResults.filter(r => r.overallStatus === ResultStatus.PASS).length}
-          </div>
-          <div className="text-sm text-gray-600">Passed</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-red-600">
-            {filteredResults.filter(r => r.overallStatus === ResultStatus.FAIL).length}
-          </div>
-          <div className="text-sm text-gray-600">Failed</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-yellow-600">
-            {filteredResults.filter(r => r.overallStatus === ResultStatus.REVIEW).length}
-          </div>
-          <div className="text-sm text-gray-600">Review</div>
-        </div>
-      </div>
-
-      {/* Results table */}
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  File
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Defects
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Processing Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Timestamp
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredResults.map((result) => (
-                <tr key={result.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {result.thumbnailUrl ? (
-                          <img
-                            className="h-10 w-10 rounded object-cover"
-                            src={result.thumbnailUrl}
-                            alt={result.fileName}
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded bg-gray-200 flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {result.fileName}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {result.metadata?.format || 'Unknown format'}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {getStatusIcon(result.overallStatus)}
-                      <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(result.overallStatus)}`}>
-                        {result.overallStatus.toUpperCase()}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {result.detectedDefects.length} defect{result.detectedDefects.length !== 1 ? 's' : ''}
-                    </div>
-                    {result.detectedDefects.length > 0 && (
-                      <div className="text-sm text-gray-500">
-                        {result.detectedDefects.map(d => d.defectType.name).join(', ')}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {(result.processingTime / 1000).toFixed(1)}s
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {DateUtils.formatDate(result.timestamp)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => onResultSelect(result)}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-900"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredResults.length === 0 && (
-          <div className="text-center py-12">
-            <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No results found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Try adjusting your search or filter criteria.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+      </td>
+      <td className="px-4 py-4 text-sm text-gray-500">
+        {(result.processingTime / 1000).toFixed(1)}s
+      </td>
+      <td className="px-4 py-4">
+        <button
+          onClick={onView}
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+        >
+          <Eye className="h-4 w-4" />
+          View Details
+        </button>
+      </td>
+    </tr>
   );
 };

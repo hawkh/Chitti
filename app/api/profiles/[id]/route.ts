@@ -6,13 +6,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // For now, we'll use the same in-memory storage pattern
 
 type RouteParams = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 // GET /api/profiles/[id] - Get specific profile
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // In a real app, this would query the database
     // For now, we'll make a request to the main profiles endpoint
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // POST /api/profiles/[id]/duplicate - Duplicate profile
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { action } = await request.json();
 
     if (action !== 'duplicate') {

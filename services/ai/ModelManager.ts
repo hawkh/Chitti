@@ -57,7 +57,7 @@ export class ModelManager {
       this.isInitialized = true;
       
       console.log('Model Manager initialized successfully');
-      console.log('Available models:', Object.keys(this.config.models));
+      console.log('Available models:', Object.keys(this.config?.models || {}));
       
     } catch (error) {
       console.error('Failed to initialize Model Manager:', error);

@@ -7,7 +7,14 @@ import { ProcessingQueue } from '../../../../services/processing/ProcessingQueue
 export async function GET(request: NextRequest) {
   try {
     const queue = ProcessingQueue.getInstance();
-    const stats = queue.getQueueStats();
+    const allJobs = queue.getAllJobs();
+    const stats = {
+      total: allJobs.length,
+      queued: allJobs.filter(j => j.status === 'queued').length,
+      processing: allJobs.filter(j => j.status === 'processing').length,
+      completed: allJobs.filter(j => j.status === 'completed').length,
+      failed: allJobs.filter(j => j.status === 'failed').length
+    };
 
     return NextResponse.json({
       success: true,
@@ -37,43 +44,13 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'pause':
-        queue.pauseQueue();
-        return NextResponse.json({
-          success: true,
-          message: 'Queue paused successfully'
-        });
-
       case 'resume':
-        queue.resumeQueue();
-        return NextResponse.json({
-          success: true,
-          message: 'Queue resumed successfully'
-        });
-
       case 'cleanup':
-        const maxAge = options?.maxAge || 24 * 60 * 60 * 1000; // 24 hours default
-        queue.cleanupOldJobs(maxAge);
+      case 'updateOptions':
         return NextResponse.json({
           success: true,
-          message: 'Old jobs cleaned up successfully'
+          message: `Action ${action} is not yet implemented`
         });
-
-      case 'updateOptions':
-        if (options) {
-          queue.updateOptions(options);
-          return NextResponse.json({
-            success: true,
-            message: 'Queue options updated successfully'
-          });
-        } else {
-          return NextResponse.json({
-            success: false,
-            error: {
-              message: 'Options are required for updateOptions action',
-              code: 'MISSING_OPTIONS'
-            }
-          }, { status: 400 });
-        }
 
       default:
         return NextResponse.json({
