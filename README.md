@@ -4,7 +4,7 @@ A comprehensive Non-Destructive Testing (NDT) solution that uses AI to detect de
 
 ## 🚀 Features
 
-- **AI-Powered Detection**: YOLO-based defect detection with 92% accuracy
+- **AI-Powered Detection**: YOLO-based defect detection with enterprise precision
 - **Real-time Processing**: Fast image and video analysis
 - **Batch Processing**: Handle multiple files simultaneously
 - **Comprehensive Reporting**: PDF, CSV, and JSON export formats
@@ -159,10 +159,10 @@ npm run test:coverage
 
 ## 📈 Performance
 
-- **Processing Speed**: ~1-2 seconds per image
-- **Accuracy**: 92% on trained dataset
-- **Batch Processing**: Up to 100 files simultaneously
-- **Memory Usage**: Optimized for browser environments
+- **Processing Speed**: Fast real-time analysis
+- **Scalability**: Enterprise-grade infrastructure
+- **Batch Processing**: Handle multiple files simultaneously
+- **Memory Usage**: Optimized for browser and server environments
 
 ## 🛡️ Security & Compliance
 

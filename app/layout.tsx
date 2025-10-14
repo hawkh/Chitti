@@ -3,8 +3,8 @@ import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { ToastProvider } from "@/components/shared/NotificationToast";
 
 export const metadata = {
-  title: "Chitti AI NDT - AI-Powered Defect Detection System",
-  description: "Comprehensive Non-Destructive Testing solution using AI to detect defects in manufacturing components with 92% accuracy.",
+  title: "Chitti AI NDT - AI-Powered Defect Detection",
+  description: "Enterprise AI-powered defect detection for manufacturing quality control.",
   icons: {
     icon: "/logoc.jpg",
   },

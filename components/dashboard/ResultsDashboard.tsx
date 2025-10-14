@@ -11,6 +11,7 @@ import {
   BarChart3 
 } from 'lucide-react';
 import { DetectionResult, DefectSeverity, ResultStatus } from '../../types';
+import PDFExportButton from '../export/PDFExportButton';
 
 interface ResultsDashboardProps {
   results: DetectionResult[];
@@ -222,12 +223,13 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           {/* Export Actions */}
           {onExport && (
             <div className="flex gap-2">
+              <PDFExportButton jobId="results-export" />
               <button
                 onClick={() => onExport('pdf')}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
               >
                 <Download className="h-4 w-4" />
-                PDF
+                Legacy PDF
               </button>
               <button
                 onClick={() => onExport('csv')}

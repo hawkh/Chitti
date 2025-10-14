@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-// Logo will be loaded from public directory
+import { Menu, X } from "lucide-react";
 
 interface NavigationItem {
   name: string;
@@ -14,39 +14,41 @@ const Header = () => {
   const navigation: NavigationItem[] = [
     { name: "Detection", href: "/detection" },
     { name: "Dashboard", href: "/dashboard" },
+    { name: "Profiles", href: "/profiles" },
     { name: "Full System", href: "/integrated-detection" },
-    { name: "About", href: "/#features" },
   ];
 
   return (
-    <header className="bg-white border-b border-gray-100">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <Link href="/" className="flex items-center space-x-3">
-            <Image
-              src="/logoc.jpg"
-              alt="Chitti AI NDT"
-              width={32}
-              height={32}
-              className="rounded"
-            />
-            <span className="font-bold text-xl text-gray-900">Chitti AI NDT</span>
+        <div className="flex justify-between items-center h-16">
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="relative">
+              <Image
+                src="/logoc.jpg"
+                alt="Chitti AI NDT"
+                width={40}
+                height={40}
+                className="rounded-lg shadow-md group-hover:shadow-lg transition-shadow"
+              />
+            </div>
+            <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Chitti AI</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex items-center space-x-1">
             {navigation.map(({ name, href }) => (
               <Link
                 key={name}
                 href={href}
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium transition-all"
               >
                 {name}
               </Link>
             ))}
             <Link
               href="/detection"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              className="ml-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold shadow-md"
             >
               Start Detection
             </Link>
@@ -55,44 +57,36 @@ const Header = () => {
           {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
-            <span className="sr-only">Open menu</span>
-            {/* Hamburger icon */}
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="px-4 pt-2 pb-3 space-y-1">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
+                className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
+            <Link
+              href="/detection"
+              className="block text-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-lg font-semibold mt-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Start Detection
+            </Link>
           </div>
         </div>
       )}

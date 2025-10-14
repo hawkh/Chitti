@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, FileText, Activity, TrendingUp, Download } from 'lucide-react';
+import { BarChart3, FileText, Activity, TrendingUp, Download, Sparkles, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { DetectionResult, ResultStatus, DefectSeverity, ComponentProfile, MaterialType, DefectType } from '@/types';
 import { ReportGenerator } from '@/services/report/ReportGenerator';
 import { ReportExporter } from '@/services/report/ReportExporter';
 import { AuditLogger } from '@/services/AuditLogger';
+import PDFExportButton from '@/components/export/PDFExportButton';
 
 // Mock data for demonstration
 const mockResults: DetectionResult[] = [
@@ -132,55 +133,68 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Overview of your defect detection activities</p>
+        <div className="mb-12">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="h-16 w-16 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/50 animate-pulse-slow">
+              <Sparkles className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-5xl font-black gradient-text text-shadow">Analytics Dashboard</h1>
+              <p className="text-gray-600 mt-2 text-lg font-medium">Real-time insights into your quality control operations</p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="stat-card group border-2 border-blue-200 hover:border-blue-400 hover:glow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Inspections</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalInspections}</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Total Inspections</p>
+                <p className="text-5xl font-black bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{stats.totalInspections}</p>
               </div>
-              <Activity className="h-8 w-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pass Rate</p>
-                <p className="text-3xl font-bold text-green-600">{passRate.toFixed(1)}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Failed Inspections</p>
-                <p className="text-3xl font-bold text-red-600">{stats.failedInspections}</p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                <span className="text-red-600 font-bold text-sm">!</span>
+              <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
+                <Activity className="h-8 w-8 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="stat-card group border-2 border-green-200 hover:border-green-400 hover:shadow-green-500/50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Avg Processing Time</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.avgProcessingTime.toFixed(1)}s</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Pass Rate</p>
+                <p className="text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{passRate.toFixed(1)}%</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-purple-500" />
+              <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-xl shadow-green-500/50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
+                <TrendingUp className="h-8 w-8 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card group border-2 border-red-200 hover:border-red-400 hover:shadow-red-500/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Failed Inspections</p>
+                <p className="text-5xl font-black bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">{stats.failedInspections}</p>
+              </div>
+              <div className="h-16 w-16 bg-gradient-to-br from-red-500 to-rose-500 rounded-2xl flex items-center justify-center shadow-xl shadow-red-500/50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
+                <XCircle className="h-8 w-8 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card group border-2 border-purple-200 hover:border-purple-400 hover:shadow-purple-500/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Avg Processing</p>
+                <p className="text-5xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{stats.avgProcessingTime.toFixed(1)}s</p>
+              </div>
+              <div className="h-16 w-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-500/50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">
+                <Clock className="h-8 w-8 text-white" />
+              </div>
             </div>
           </div>
         </div>
@@ -188,30 +202,36 @@ export default function DashboardPage() {
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Inspections */}
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Inspections</h2>
+              <h2 className="text-xl font-bold text-gray-900">Recent Inspections</h2>
             </div>
             <div className="p-6">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {results.slice(0, 5).map((result) => (
-                  <div key={result.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        result.overallStatus === 'pass' ? 'bg-green-500' : 'bg-red-500'
-                      }`} />
+                  <div key={result.id} className="group flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 hover:from-blue-50 hover:to-indigo-50 rounded-xl border border-gray-200 hover:border-blue-300 transition-all hover:shadow-md">
+                    <div className="flex items-center space-x-4">
+                      {result.overallStatus === 'pass' ? (
+                        <CheckCircle className="h-6 w-6 text-green-500" />
+                      ) : (
+                        <XCircle className="h-6 w-6 text-red-500" />
+                      )}
                       <div>
-                        <p className="font-medium text-gray-900">{result.fileName}</p>
-                        <p className="text-sm text-gray-500">
-                          {result.detectedDefects.length} defects found
+                        <p className="font-semibold text-gray-900">{result.fileName}</p>
+                        <p className="text-sm text-gray-600">
+                          {result.detectedDefects.length} defects detected
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                        result.overallStatus === 'pass' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                      }`}>
                         {result.overallStatus.toUpperCase()}
-                      </p>
-                      <p className="text-xs text-gray-500">
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
                         {(result.processingTime / 1000).toFixed(1)}s
                       </p>
                     </div>
@@ -222,41 +242,45 @@ export default function DashboardPage() {
           </div>
 
           {/* Report Generation */}
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Generate Reports</h2>
+              <h2 className="text-xl font-bold text-gray-900">Export Reports</h2>
             </div>
             <div className="p-6">
               <p className="text-gray-600 mb-6">
-                Export your inspection data in various formats for analysis and compliance.
+                Professional reports for compliance, analysis, and stakeholder communication.
               </p>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="w-full">
+                  <PDFExportButton jobId="demo-job-id" />
+                </div>
+                
                 <button
                   onClick={() => handleGenerateReport('pdf')}
                   disabled={isGeneratingReport}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                 >
                   <FileText className="h-5 w-5" />
-                  {isGeneratingReport ? 'Generating...' : 'Download PDF Report'}
+                  {isGeneratingReport ? 'Generating...' : 'Legacy PDF Report'}
                 </button>
 
                 <button
                   onClick={() => handleGenerateReport('csv')}
                   disabled={isGeneratingReport}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                 >
                   <Download className="h-5 w-5" />
-                  {isGeneratingReport ? 'Generating...' : 'Download CSV Data'}
+                  {isGeneratingReport ? 'Generating...' : 'CSV Data Export'}
                 </button>
 
                 <button
                   onClick={() => handleGenerateReport('json')}
                   disabled={isGeneratingReport}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                 >
                   <Download className="h-5 w-5" />
-                  {isGeneratingReport ? 'Generating...' : 'Download JSON Data'}
+                  {isGeneratingReport ? 'Generating...' : 'JSON Data Export'}
                 </button>
               </div>
             </div>
@@ -264,31 +288,31 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <a
               href="/detection"
-              className="flex items-center justify-center gap-3 px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="group flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl hover:shadow-lg hover:scale-105 transition-all"
             >
-              <Activity className="h-5 w-5 text-blue-600" />
-              <span className="font-medium">New Detection</span>
+              <Activity className="h-6 w-6 text-blue-600 group-hover:animate-pulse" />
+              <span className="font-semibold text-gray-900">New Detection</span>
             </a>
             
             <a
               href="/integrated-detection?tab=analytics"
-              className="flex items-center justify-center gap-3 px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="group flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl hover:shadow-lg hover:scale-105 transition-all"
             >
-              <BarChart3 className="h-5 w-5 text-green-600" />
-              <span className="font-medium">View Analytics</span>
+              <BarChart3 className="h-6 w-6 text-green-600 group-hover:animate-pulse" />
+              <span className="font-semibold text-gray-900">View Analytics</span>
             </a>
             
             <a
               href="/integrated-detection?tab=profiles"
-              className="flex items-center justify-center gap-3 px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="group flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl hover:shadow-lg hover:scale-105 transition-all"
             >
-              <FileText className="h-5 w-5 text-purple-600" />
-              <span className="font-medium">Manage Profiles</span>
+              <FileText className="h-6 w-6 text-purple-600 group-hover:animate-pulse" />
+              <span className="font-semibold text-gray-900">Manage Profiles</span>
             </a>
           </div>
         </div>

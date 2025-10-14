@@ -7,6 +7,7 @@ import path from 'path';
 import { FileValidator } from '@/lib/validation';
 import { IdGenerator, FileUtils } from '@/lib/utils';
 import { SUPPORTED_IMAGE_FORMATS, SUPPORTED_VIDEO_FORMATS } from '@/lib/constants';
+import { prisma } from '@/lib/database';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 const TEMP_DIR = path.join(UPLOAD_DIR, 'temp');
@@ -53,28 +54,49 @@ export async function POST(request: NextRequest) {
 
     const uploadResults = [];
 
+    // Create detection job
+    const job = await prisma.detectionJob.create({
+      data: {
+        userId: 'default-user',
+        status: 'QUEUED',
+        config: {},
+        totalFiles: files.length,
+      },
+    });
+
     for (const file of files) {
       try {
-        // Generate unique filename
         const fileExtension = FileUtils.getFileExtension(file.name);
         const uniqueFilename = `${IdGenerator.generate()}.${fileExtension}`;
         const filePath = path.join(TEMP_DIR, uniqueFilename);
 
-        // Convert file to buffer and save
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         await writeFile(filePath, buffer);
 
-        // Generate file info
+        // Save to database
+        const dbFile = await prisma.detectionFile.create({
+          data: {
+            jobId: job.id,
+            originalName: file.name,
+            filename: uniqueFilename,
+            filePath,
+            fileSize: file.size,
+            mimeType: file.type,
+            status: 'PENDING',
+          },
+        });
+
         const fileInfo = {
-          id: IdGenerator.generate(),
+          id: dbFile.id,
           originalName: file.name,
           filename: uniqueFilename,
           path: filePath,
           size: file.size,
           type: file.type,
-          uploadedAt: new Date().toISOString(),
-          url: `/api/files/${uniqueFilename}`
+          uploadedAt: dbFile.uploadedAt.toISOString(),
+          url: `/api/files/${uniqueFilename}`,
+          jobId: job.id,
         };
 
         uploadResults.push(fileInfo);

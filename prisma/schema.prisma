@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  detectionJobs DetectionJob[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model DetectionJob {
+  id          String    @id @default(cuid())
+  userId      String
+  status      JobStatus @default(QUEUED)
+  priority    Int       @default(0)
+  config      Json
+  progress    Float     @default(0)
+  totalFiles  Int
+  processedFiles Int    @default(0)
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  error       String?
+
+  user    User           @relation(fields: [userId], references: [id])
+  files   DetectionFile[]
+  results DetectionResult[]
+
+  @@map("detection_jobs")
+}
+
+model DetectionFile {
+  id           String     @id @default(cuid())
+  jobId        String
+  originalName String
+  filename     String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  status       FileStatus @default(PENDING)
+  uploadedAt   DateTime   @default(now())
+  processedAt  DateTime?
+
+  job    DetectionJob      @relation(fields: [jobId], references: [id])
+  result DetectionResult?
+
+  @@map("detection_files")
+}
+
+model DetectionResult {
+  id              String   @id @default(cuid())
+  jobId           String
+  fileId          String   @unique
+  overallStatus   String
+  processingTime  Float
+  defectsFound    Int      @default(0)
+  confidence      Float
+  detections      Json
+  createdAt       DateTime @default(now())
+
+  job  DetectionJob  @relation(fields: [jobId], references: [id])
+  file DetectionFile @relation(fields: [fileId], references: [id])
+
+  @@map("detection_results")
+}
+
+model ModelInfo {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  version         String
+  description     String?
+  modelPath       String
+  weightsPath     String?
+  configPath      String
+  inputSize       Json
+  classNames      Json
+  accuracy        Float?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("model_info")
+}
+
+model ComponentProfile {
+  id                 String   @id @default(cuid())
+  name               String   @unique
+  materialType       String
+  criticalDefects    Json
+  defaultSensitivity Float    @default(0.7)
+  qualityStandards   Json
+  customParameters   Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("component_profiles")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum FileStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
