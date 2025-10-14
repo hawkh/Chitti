@@ -5,6 +5,8 @@ import Header from "@/components/layout/Header";
 const Features = dynamic(() => import('@/components/home/Features'));
 const CTASection = dynamic(() => import('@/components/home/CTASection'));
 const Footer = dynamic(() => import('@/src/components/layout/Footer'));
+const LiveDemo = dynamic(() => import('@/components/LiveDemo'));
+const RealTimeStats = dynamic(() => import('@/components/RealTimeStats'));
 
 export default function Home() {
   return (
@@ -12,6 +14,10 @@ export default function Home() {
       <Header />
       <Hero />
       <Features />
+      <div className="max-w-7xl mx-auto px-4 py-16 space-y-12">
+        <LiveDemo />
+        <RealTimeStats />
+      </div>
       <CTASection />
       <Footer />
     </div>
