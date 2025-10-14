@@ -33,17 +33,17 @@ export default function Hero(): JSX.Element {
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href="/integrated-detection"
-                className="group inline-flex items-center gap-3 bg-white text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-yellow-300 hover:text-blue-900 transition-all shadow-2xl hover:shadow-yellow-300/50 hover:scale-110 transform"
+                className="group inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-10 py-5 rounded-2xl font-black text-lg hover:from-yellow-300 hover:to-orange-400 transition-all shadow-2xl hover:shadow-yellow-400/50 hover:scale-110 transform animate-pulse"
               >
-                <Zap className="h-6 w-6 group-hover:animate-pulse" />
-                Start Free Trial
+                <Zap className="h-6 w-6 group-hover:animate-spin" />
+                🎥 Live Camera Detection
               </Link>
               <Link
                 href="/detection"
-                className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md text-white px-10 py-5 rounded-2xl font-bold text-lg border-2 border-white/40 hover:bg-white hover:text-blue-600 transition-all shadow-xl hover:scale-110 transform"
+                className="inline-flex items-center gap-3 bg-white text-blue-600 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-blue-50 transition-all shadow-2xl hover:scale-110 transform"
               >
                 <Shield className="h-6 w-6" />
-                View Demo
+                Upload Files
               </Link>
             </div>
             
