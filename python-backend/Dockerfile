@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY "best (5).pt" best.pt
+COPY ["best (5).pt", "best.pt"]
 COPY app.py .
 
 ENV PORT=8080
