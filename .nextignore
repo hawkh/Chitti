@@ -1,0 +1,8 @@
+microservices/
+python-backend/
+terraform/
+k8s/
+tests/
+monitoring/
+postgres/
+ci-cd/

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -11,6 +12,8 @@ async function main() {
       id: 'default-user',
       email: 'admin@chitti.ai',
       name: 'Admin User',
+      password: await bcrypt.hash('admin123', 10),
+      role: 'admin',
     },
   });
 

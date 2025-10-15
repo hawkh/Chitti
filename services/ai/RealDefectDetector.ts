@@ -19,15 +19,20 @@ export class RealDefectDetector {
     }
   }
 
-  async detectDefects(imageElement: HTMLImageElement): Promise<DetectionResult> {
+  async detectDefects(imageElement: HTMLImageElement | ImageData): Promise<DetectionResult> {
     if (!this.isLoaded) {
       await this.loadModel();
     }
 
-    const tensor = tf.browser.fromPixels(imageElement)
-      .resizeNearestNeighbor([640, 640])
-      .expandDims(0)
-      .cast('int32');
+    const tensor = imageElement instanceof HTMLImageElement
+      ? tf.browser.fromPixels(imageElement)
+          .resizeNearestNeighbor([640, 640])
+          .expandDims(0)
+          .cast('int32')
+      : tf.browser.fromPixels(imageElement)
+          .resizeNearestNeighbor([640, 640])
+          .expandDims(0)
+          .cast('int32');
 
     let detections;
     if (this.model) {
@@ -60,7 +65,9 @@ export class RealDefectDetector {
     }));
   }
 
-  private processDetections(detections: any, imageElement: HTMLImageElement): DetectionResult {
+  private processDetections(detections: any, imageElement: HTMLImageElement | ImageData): DetectionResult {
+    const width = imageElement instanceof HTMLImageElement ? imageElement.width : imageElement.width;
+    const height = imageElement instanceof HTMLImageElement ? imageElement.height : imageElement.height;
     const defects = [];
     const confidenceThreshold = 0.5;
 
@@ -78,10 +85,10 @@ export class RealDefectDetector {
             type: this.getDefectType(detection.classes?.[0] || i),
             confidence,
             location: {
-              x: box[1] * imageElement.width,
-              y: box[0] * imageElement.height,
-              width: (box[3] - box[1]) * imageElement.width,
-              height: (box[2] - box[0]) * imageElement.height
+              x: box[1] * width,
+              y: box[0] * height,
+              width: (box[3] - box[1]) * width,
+              height: (box[2] - box[0]) * height
             },
             severity: confidence > 0.8 ? DefectSeverity.HIGH : DefectSeverity.MEDIUM,
             description: this.getDefectDescription(detection.classes?.[0] || i),

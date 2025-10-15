@@ -52,11 +52,10 @@ gcloud services enable \
 
 ```bash
 # Create PostgreSQL instance
-gcloud sql instances create chitti-db \
-  --database-version=POSTGRES_15 \
-  --tier=db-f1-micro \
-  --region=us-central1 \
-  --root-password=YOUR_SECURE_PASSWORD
+
+
+
+
 
 # Create database
 gcloud sql databases create chitti_ndt --instance=chitti-db

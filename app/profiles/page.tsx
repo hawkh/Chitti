@@ -35,9 +35,10 @@ export default function ProfilesPage() {
       }),
     });
     if (res.ok) {
-      fetchProfiles();
+      await fetchProfiles();
       setIsCreating(false);
       resetForm();
+      alert('Profile created successfully!');
     }
   };
 

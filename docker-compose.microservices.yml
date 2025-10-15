@@ -1,0 +1,252 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./microservices/api-gateway/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - auth-service
+      - file-service
+      - detection-service
+    networks:
+      - chitti-network
+
+  auth-service:
+    build: ./microservices/auth-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:pgadmin@pgbouncer:5432/chitti_ndt
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=chitti-secret-key-2024
+    depends_on:
+      - pgbouncer
+      - redis
+    deploy:
+      replicas: 3
+    networks:
+      - chitti-network
+
+  file-service:
+    build: ./microservices/file-service
+    environment:
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET:-chitti-ndt}
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      - rabbitmq
+    deploy:
+      replicas: 2
+    networks:
+      - chitti-network
+
+  report-service:
+    build: ./microservices/report-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:pgadmin@pgbouncer:5432/chitti_ndt
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      - pgbouncer
+      - rabbitmq
+    deploy:
+      replicas: 2
+    networks:
+      - chitti-network
+
+  detection-service:
+    build: ./python-backend
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      - rabbitmq
+    deploy:
+      replicas: 2
+    networks:
+      - chitti-network
+
+  celery-worker:
+    build: ./python-backend
+    command: celery -A celery_worker worker --loglevel=info
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      - rabbitmq
+    deploy:
+      replicas: 3
+    networks:
+      - chitti-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=chitti_ndt
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pgadmin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - chitti-network
+
+  postgres-replica:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=chitti_ndt
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pgadmin
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    command: |
+      bash -c "
+      until pg_basebackup -h postgres -D /var/lib/postgresql/data/pgdata -U postgres -v -P; do
+        sleep 5
+      done
+      postgres -c wal_level=replica
+      "
+    depends_on:
+      - postgres
+    networks:
+      - chitti-network
+
+  pgbouncer:
+    image: edoburu/pgbouncer
+    environment:
+      - DATABASE_URL=postgresql://postgres:pgadmin@postgres:5432/chitti_ndt
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=1000
+      - DEFAULT_POOL_SIZE=25
+    ports:
+      - "6432:5432"
+    depends_on:
+      - postgres
+    networks:
+      - chitti-network
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - chitti-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - chitti-network
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - chitti-network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - chitti-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - chitti-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    ports:
+      - "5000:5000"
+      - "5044:5044"
+    volumes:
+      - ./monitoring/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
+    networks:
+      - chitti-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - chitti-network
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:pgadmin@postgres:5432/chitti_ndt?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - chitti-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    environment:
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - chitti-network
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - chitti-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+
+networks:
+  chitti-network:
+    driver: bridge

@@ -1,0 +1,86 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push auth-service
+        uses: docker/build-push-action@v4
+        with:
+          context: ./microservices/auth-service
+          push: true
+          tags: chitti/auth-service:latest
+      
+      - name: Build and push file-service
+        uses: docker/build-push-action@v4
+        with:
+          context: ./microservices/file-service
+          push: true
+          tags: chitti/file-service:latest
+      
+      - name: Build and push report-service
+        uses: docker/build-push-action@v4
+        with:
+          context: ./microservices/report-service
+          push: true
+          tags: chitti/report-service:latest
+      
+      - name: Build and push detection-service
+        uses: docker/build-push-action@v4
+        with:
+          context: ./python-backend
+          push: true
+          tags: chitti/detection-service:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name chitti-cluster --region us-east-1
+      
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl rollout status deployment/auth-service
+          kubectl rollout status deployment/file-service
+          kubectl rollout status deployment/detection-service

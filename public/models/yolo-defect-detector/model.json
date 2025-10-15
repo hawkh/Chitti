@@ -1,0 +1,9 @@
+{
+  "format": "yolo",
+  "modelType": "yolov5",
+  "weightsFile": "best.pt",
+  "inputSize": [640, 640],
+  "classes": ["crack", "corrosion", "deformation", "surface_irregularity", "inclusion", "void", "dimensional_variance"],
+  "confidenceThreshold": 0.5,
+  "iouThreshold": 0.45
+}

@@ -58,6 +58,11 @@
     "**/*.tsx" // All TypeScript JSX files
   ],
   "exclude": [
-    "node_modules" // Exclude dependencies from type checking
+    "node_modules",
+    "microservices",
+    "python-backend",
+    "terraform",
+    "k8s",
+    "tests"
   ]
 }
