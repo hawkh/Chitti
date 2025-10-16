@@ -13,7 +13,8 @@
     "@aws-sdk/client-s3": "^3.478.0",
     "amqplib": "^0.10.3",
     "sharp": "^0.33.1",
-    "prometheus-api-metrics": "^3.2.2"
+    "prometheus-api-metrics": "^3.2.2",
+    "aws-sdk": "^2.1539.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
