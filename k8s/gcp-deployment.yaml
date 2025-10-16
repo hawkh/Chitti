@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: gcr.io/YOUR_PROJECT_ID/auth-service:latest
+        image: gcr.io/green-plasma-475110-k7/auth-service:latest
         ports:
         - containerPort: 3001
         env:
@@ -90,7 +90,7 @@ spec:
     spec:
       containers:
       - name: file-service
-        image: gcr.io/YOUR_PROJECT_ID/file-service:latest
+        image: gcr.io/green-plasma-475110-k7/file-service:latest
         ports:
         - containerPort: 3002
         env:
@@ -147,7 +147,7 @@ spec:
     spec:
       containers:
       - name: detection-service
-        image: gcr.io/YOUR_PROJECT_ID/detection-service:latest
+        image: gcr.io/green-plasma-475110-k7/detection-service:latest
         ports:
         - containerPort: 5000
         env:
