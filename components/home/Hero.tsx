@@ -26,7 +26,7 @@ export default function Hero(): JSX.Element {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light">
-              Sub-second inference, enterprise accuracy. Reduce manual inspection time by up to 40%.
+              Affordable, AI-powered NDT solutions for faster, more accurate industrial quality inspection.
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">

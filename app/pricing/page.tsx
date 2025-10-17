@@ -5,9 +5,9 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-black">
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-5xl font-bold text-white mb-6 text-center">Pricing Plans</h1>
+        <h1 className="text-5xl font-bold text-white mb-6 text-center">Pricing</h1>
         <p className="text-xl text-gray-300 mb-12 text-center max-w-2xl mx-auto">
-          Choose the plan that fits your quality control needs
+          Currently in R&D and pilot stage. Contact us for custom pricing and pilot programs.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -15,8 +15,7 @@ export default function PricingPage() {
             <h3 className="text-2xl font-bold text-white mb-2">Starter</h3>
             <p className="text-gray-400 mb-6">For small teams testing AI inspection</p>
             <div className="mb-6">
-              <span className="text-4xl font-bold text-white">$499</span>
-              <span className="text-gray-400">/month</span>
+              <span className="text-2xl font-bold text-white">Contact for Pricing</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2 text-gray-300">
@@ -37,7 +36,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <Link href="/contact" className="block text-center px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 font-semibold">
-              Get Started
+              Contact Us
             </Link>
           </div>
 
@@ -48,8 +47,7 @@ export default function PricingPage() {
             <h3 className="text-2xl font-bold text-white mb-2">Professional</h3>
             <p className="text-blue-100 mb-6">For growing manufacturing operations</p>
             <div className="mb-6">
-              <span className="text-4xl font-bold text-white">$1,499</span>
-              <span className="text-blue-100">/month</span>
+              <span className="text-2xl font-bold text-white">Pilot Program</span>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2 text-white">
@@ -74,7 +72,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <Link href="/contact" className="block text-center px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-semibold">
-              Start Trial
+              Join Pilot
             </Link>
           </div>
 

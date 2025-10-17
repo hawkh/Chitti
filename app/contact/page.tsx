@@ -46,7 +46,7 @@ export default function ContactPage() {
                 <Mail className="h-6 w-6 text-blue-400 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="text-lg font-bold text-white mb-1">Email</h3>
-                  <p className="text-gray-400">contact@chitti-ai.com</p>
+                  <a href="mailto:ruthvikworking@gmail.com" className="text-gray-400 hover:text-blue-400">ruthvikworking@gmail.com</a>
                 </div>
               </div>
             </div>
@@ -55,7 +55,7 @@ export default function ContactPage() {
                 <Phone className="h-6 w-6 text-green-400 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="text-lg font-bold text-white mb-1">Phone</h3>
-                  <p className="text-gray-400">+1 (555) 123-4567</p>
+                  <a href="tel:+916303639831" className="text-gray-400 hover:text-green-400">+91 6303 639 831</a>
                 </div>
               </div>
             </div>
@@ -64,7 +64,7 @@ export default function ContactPage() {
                 <MapPin className="h-6 w-6 text-purple-400 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="text-lg font-bold text-white mb-1">Location</h3>
-                  <p className="text-gray-400">San Francisco, CA</p>
+                  <p className="text-gray-400">Hyderabad, Telangana, India</p>
                 </div>
               </div>
             </div>

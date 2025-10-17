@@ -3,49 +3,34 @@ import Link from 'next/link';
 
 const caseStudies = [
   {
-    company: 'AutoTech Manufacturing',
+    company: 'Leading Automotive Manufacturer',
     industry: 'Automotive',
     icon: TrendingUp,
     gradient: 'from-blue-500 to-blue-600',
-    challenge: 'Manual inspection of 10,000+ welds daily causing bottlenecks',
-    solution: 'Deployed Chitti AI for real-time weld defect detection',
+    challenge: 'Manual inspection of welds causing production bottlenecks',
+    solution: 'Piloting Chitti AI for real-time weld defect detection',
     results: [
-      '40% reduction in inspection time',
-      '99.2% defect detection accuracy',
-      '$2M annual cost savings'
+      '30% reduction in inspection time (early trials)',
+      'AI-assisted human-in-the-loop workflow',
+      'Reduced false positives'
     ],
-    quote: 'Chitti AI transformed our quality control process. We now catch defects that human inspectors missed.',
-    author: 'John Smith, QC Director'
+    quote: 'Early results show promise in reducing manual inspection overhead while maintaining quality standards.',
+    author: 'Pilot Partner'
   },
   {
-    company: 'ElectroCore Systems',
-    industry: 'Electronics',
-    icon: Zap,
-    gradient: 'from-purple-500 to-purple-600',
-    challenge: 'PCB solder defects causing 15% failure rate in field',
-    solution: 'Integrated Chitti AI into SMT production line',
-    results: [
-      '92% reduction in field failures',
-      '3x faster inspection throughput',
-      'ROI achieved in 4 months'
-    ],
-    quote: 'The AI catches micro-defects invisible to the naked eye. Our warranty claims dropped dramatically.',
-    author: 'Sarah Chen, VP Operations'
-  },
-  {
-    company: 'Precision Metals Inc',
-    industry: 'Metal Fabrication',
+    company: 'Metal Fabrication Partner',
+    industry: 'Fabrication',
     icon: Award,
     gradient: 'from-orange-500 to-orange-600',
-    challenge: 'Surface crack detection requiring expensive X-ray equipment',
-    solution: 'Replaced X-ray with Chitti AI visual inspection',
+    challenge: 'Surface defect detection requiring expensive equipment',
+    solution: 'Testing Chitti AI with low-cost sensors',
     results: [
-      '60% equipment cost reduction',
-      'Sub-second inspection time',
-      'Zero false negatives in 6 months'
+      'Affordable alternative to traditional NDT',
+      'Real-time defect visualization',
+      'Pilot validation in progress'
     ],
-    quote: 'We eliminated our X-ray dependency while improving detection rates. Game changer.',
-    author: 'Mike Rodriguez, Plant Manager'
+    quote: 'Exploring cost-effective AI solutions for quality control at scale.',
+    author: 'Manufacturing Partner'
   }
 ];
 
@@ -54,9 +39,9 @@ export default function CaseStudies() {
     <section className="py-24 bg-gradient-to-b from-black via-slate-900 to-black" id="case-studies">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Proven Results</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Early Partnerships</h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Real companies achieving measurable improvements with Chitti AI
+            Working with manufacturing partners in automotive and fabrication sectors to validate performance and impact
           </p>
         </div>
 

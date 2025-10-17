@@ -31,9 +31,8 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Connect</h4>
             <div className="flex gap-4">
-              <a href="#" className="text-gray-400 hover:text-white"><Github className="h-5 w-5" /></a>
-              <a href="#" className="text-gray-400 hover:text-white"><Linkedin className="h-5 w-5" /></a>
-              <a href="#" className="text-gray-400 hover:text-white"><Twitter className="h-5 w-5" /></a>
+              <a href="https://github.com/Chitti-AI-Solutions" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white"><Github className="h-5 w-5" /></a>
+              <a href="https://www.linkedin.com/company/chitti-ai/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white"><Linkedin className="h-5 w-5" /></a>
             </div>
           </div>
         </div>
