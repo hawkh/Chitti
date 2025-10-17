@@ -1,0 +1,6 @@
+@echo off
+echo Setting project...
+call gcloud config set project green-plasma-475110-k7
+echo.
+echo Done! Press any key to continue...
+pause

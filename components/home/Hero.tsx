@@ -19,31 +19,30 @@ export default function Hero(): JSX.Element {
             </div>
             
             <h1 className="text-6xl md:text-8xl font-black leading-tight tracking-tight">
-              Defect Detection
+              Detect micro-defects
               <span className="block bg-gradient-to-r from-red-500 via-red-400 to-orange-500 bg-clip-text text-transparent animate-shimmer">
-                Reimagined
+                in real time
               </span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light">
-              Enterprise-grade AI that detects manufacturing defects in real-time. 
-              Transform your quality control process today.
+              Sub-second inference, enterprise accuracy. Reduce manual inspection time by up to 40%.
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
-                href="/integrated-detection"
+                href="/demo"
                 className="group inline-flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-700 text-white px-10 py-5 rounded-2xl font-black text-lg hover:from-red-500 hover:to-red-600 transition-all shadow-2xl hover:shadow-red-600/50 hover:scale-110 transform animate-pulse"
               >
                 <Zap className="h-6 w-6 group-hover:animate-spin" />
-                🎥 Live Camera Detection
+                Try Live Demo
               </Link>
               <Link
-                href="/detection"
+                href="/contact"
                 className="inline-flex items-center gap-3 bg-slate-800 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-slate-700 transition-all shadow-2xl hover:scale-110 transform border border-slate-700"
               >
                 <Shield className="h-6 w-6" />
-                Upload Files
+                Request Pilot
               </Link>
             </div>
             

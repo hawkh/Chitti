@@ -1,23 +1,23 @@
 import dynamic from 'next/dynamic';
 import Hero from "@/components/home/Hero";
 import Header from "@/components/layout/Header";
+import Features from '@/components/home/Features';
+import UseCases from '@/components/home/UseCases';
+import CaseStudies from '@/components/home/CaseStudies';
 
-const Features = dynamic(() => import('@/components/home/Features'));
 const CTASection = dynamic(() => import('@/components/home/CTASection'));
 const Footer = dynamic(() => import('@/src/components/layout/Footer'));
-const LiveDetectionDemo = dynamic(() => import('@/components/demo/LiveDetectionDemo'));
-const RealTimeStats = dynamic(() => import('@/components/RealTimeStats'));
+const Stats = dynamic(() => import('@/components/home/Stats'));
 
 export default function Home() {
   return (
     <div className="bg-black min-h-screen">
       <Header />
       <Hero />
+      <Stats />
       <Features />
-      <div className="max-w-7xl mx-auto px-4 py-16 space-y-12 bg-gradient-to-b from-black via-gray-900 to-black">
-        <LiveDetectionDemo />
-        <RealTimeStats />
-      </div>
+      <UseCases />
+      <CaseStudies />
       <CTASection />
       <Footer />
     </div>

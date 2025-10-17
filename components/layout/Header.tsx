@@ -12,10 +12,12 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation: NavigationItem[] = [
-    { name: "Detection", href: "/detection" },
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Profiles", href: "/profiles" },
-    { name: "Full System", href: "/integrated-detection" },
+    { name: "Demo", href: "/demo" },
+    { name: "Features", href: "/#features" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "Security", href: "/security" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
@@ -53,10 +55,10 @@ const Header = () => {
               Login
             </Link>
             <Link
-              href="/detection"
+              href="/demo"
               className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold shadow-md hover:from-red-500 hover:to-red-600"
             >
-              Start Detection
+              Try Demo
             </Link>
           </nav>
 
@@ -87,11 +89,11 @@ const Header = () => {
               </Link>
             ))}
             <Link
-              href="/detection"
+              href="/demo"
               className="block text-center bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg font-semibold mt-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              Start Detection
+              Try Demo
             </Link>
           </div>
         </div>

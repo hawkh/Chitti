@@ -12,9 +12,18 @@ model = None
 
 def load_model():
     global model
-    model = YOLO('best.pt')
-    model.conf = 0.5
-    model.iou = 0.45
+    try:
+        model = YOLO('best (5).pt')
+        model.conf = 0.5
+        model.iou = 0.45
+        print('Model loaded successfully: best (5).pt')
+    except Exception as e:
+        print(f'Error loading model: {e}')
+        try:
+            model = YOLO('best.pt')
+            print('Fallback: loaded best.pt')
+        except:
+            print('Failed to load any model')
 
 @app.route('/health', methods=['GET'])
 def health():

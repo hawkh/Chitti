@@ -20,35 +20,42 @@ export class RealDefectDetector {
   }
 
   async detectDefects(imageElement: HTMLImageElement | ImageData): Promise<DetectionResult> {
-    if (!this.isLoaded) {
-      await this.loadModel();
-    }
-
-    const tensor = imageElement instanceof HTMLImageElement
-      ? tf.browser.fromPixels(imageElement)
-          .resizeNearestNeighbor([640, 640])
-          .expandDims(0)
-          .cast('int32')
-      : tf.browser.fromPixels(imageElement)
-          .resizeNearestNeighbor([640, 640])
-          .expandDims(0)
-          .cast('int32');
-
-    let detections;
-    if (this.model) {
-      try {
-        detections = await this.model.executeAsync(tensor) as tf.Tensor[];
-      } catch (error) {
-        console.error('Model inference failed:', error);
-        detections = this.mockDetection();
+    const startTime = Date.now();
+    
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (imageElement instanceof HTMLImageElement) {
+        canvas.width = imageElement.width;
+        canvas.height = imageElement.height;
+        ctx?.drawImage(imageElement, 0, 0);
+      } else {
+        canvas.width = imageElement.width;
+        canvas.height = imageElement.height;
+        ctx?.putImageData(imageElement, 0, 0);
       }
-    } else {
-      detections = this.mockDetection();
+      
+      const base64Image = canvas.toDataURL('image/jpeg');
+      
+      const response = await fetch('/api/detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Image })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Detection API failed');
+      }
+      
+      const data = await response.json();
+      const processingTime = Date.now() - startTime;
+      
+      return this.processYOLODetections(data.detections, imageElement, processingTime);
+    } catch (error) {
+      console.error('Detection failed, using mock:', error);
+      return this.processDetections(this.mockDetection(), imageElement);
     }
-
-    tensor.dispose();
-
-    return this.processDetections(detections, imageElement);
   }
 
   private mockDetection(): any[] {
@@ -63,6 +70,49 @@ export class RealDefectDetector {
       scores: [defect.confidence],
       classes: [defect.type === 'crack' ? 1 : 2]
     }));
+  }
+
+  private processYOLODetections(detections: any[], imageElement: HTMLImageElement | ImageData, processingTime: number): DetectionResult {
+    const width = imageElement instanceof HTMLImageElement ? imageElement.width : imageElement.width;
+    const height = imageElement instanceof HTMLImageElement ? imageElement.height : imageElement.height;
+    const defects = [];
+
+    for (const detection of detections) {
+      const [x, y, w, h] = detection.bbox;
+      defects.push({
+        id: `defect_${Date.now()}_${Math.random()}`,
+        type: detection.className || 'defect',
+        confidence: detection.confidence,
+        location: { x, y, width: w, height: h },
+        severity: detection.confidence > 0.8 ? DefectSeverity.HIGH : DefectSeverity.MEDIUM,
+        description: `${detection.className} detected with ${(detection.confidence * 100).toFixed(1)}% confidence`,
+        affectedArea: (w * h) / (width * height) * 100
+      });
+    }
+
+    return {
+      id: `result_${Date.now()}`,
+      fileName: 'uploaded_image',
+      defects,
+      detectedDefects: defects.map(d => ({
+        id: d.id,
+        defectType: {
+          id: d.type,
+          name: d.type,
+          description: d.description,
+          category: 'structural',
+          severity: d.severity
+        },
+        confidence: d.confidence,
+        boundingBox: d.location,
+        severity: d.severity,
+        description: d.description,
+        affectedArea: d.affectedArea
+      })),
+      overallStatus: defects.length > 0 ? 'fail' : 'pass',
+      processingTime,
+      timestamp: new Date()
+    } as DetectionResult;
   }
 
   private processDetections(detections: any, imageElement: HTMLImageElement | ImageData): DetectionResult {

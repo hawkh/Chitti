@@ -62,4 +62,4 @@ app.get('/download/:filename(*)', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => console.log(`File service (GCP Native) on ${PORT}`));
+app.listen(PORT, () => console.log(`File service (GCP) on ${PORT}`));
