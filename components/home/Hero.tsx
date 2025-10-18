@@ -19,10 +19,7 @@ export default function Hero(): JSX.Element {
             </div>
             
             <h1 className="text-6xl md:text-8xl font-black leading-tight tracking-tight">
-              Detect micro-defects
-              <span className="block bg-gradient-to-r from-red-500 via-red-400 to-orange-500 bg-clip-text text-transparent animate-shimmer">
-                in real time
-              </span>
+              Detect micro-defects <span className="bg-gradient-to-r from-red-500 via-red-400 to-orange-500 bg-clip-text text-transparent animate-shimmer">in real time</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light">
