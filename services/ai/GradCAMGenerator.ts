@@ -25,9 +25,11 @@ export class GradCAMGenerator {
       }
 
       // Create a model that outputs both predictions and conv layer activations
+      const modelOutput = Array.isArray(model.output) ? model.output[0] : model.output;
+      const layerOutput = Array.isArray(targetLayer.output) ? targetLayer.output[0] : targetLayer.output;
       const gradModel = tf.model({
         inputs: model.inputs,
-        outputs: [model.output, targetLayer.output]
+        outputs: [modelOutput, layerOutput]
       });
 
       // Get predictions and activations
@@ -56,7 +58,7 @@ export class GradCAMGenerator {
 
       // Resize heatmap to image size
       heatmap = tf.image.resizeBilinear(
-        heatmap.expandDims(-1),
+        heatmap.expandDims(-1) as tf.Tensor3D,
         [image.height, image.width]
       ).squeeze();
 

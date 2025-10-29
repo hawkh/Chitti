@@ -109,7 +109,7 @@ export default function DashboardPage() {
       const reportGenerator = new ReportGenerator();
       const reportExporter = new ReportExporter();
       
-      const report = reportGenerator.generateInspectionReport(
+      const report = await reportGenerator.generateInspectionReport(
         results,
         mockProfile,
         {
