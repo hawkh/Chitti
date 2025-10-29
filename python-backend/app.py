@@ -1,16 +1,17 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from ultralytics import YOLO
 from PIL import Image
+from contextlib import asynccontextmanager
 import io
 import base64
-
-app = Flask(__name__)
-CORS(app)
+import uvicorn
 
 model = None
 
-def load_model():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     global model
     try:
         model = YOLO('best (5).pt')
@@ -24,23 +25,34 @@ def load_model():
             print('Fallback: loaded best.pt')
         except:
             print('Failed to load any model')
+    yield
 
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'ok', 'model_loaded': model is not None})
+app = FastAPI(title="Chitti AI NDT API", lifespan=lifespan)
 
-@app.route('/detect', methods=['POST'])
-def detect():
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class DetectRequest(BaseModel):
+    image: str
+
+@app.get('/health')
+async def health():
+    return {'status': 'ok', 'model_loaded': model is not None}
+
+@app.post('/detect')
+async def detect(request: DetectRequest):
     if model is None:
-        return jsonify({'error': 'Model not loaded'}), 500
+        raise HTTPException(status_code=500, detail='Model not loaded')
     
-    data = request.json
-    image_data = data.get('image')
+    if not request.image:
+        raise HTTPException(status_code=400, detail='No image provided')
     
-    if not image_data:
-        return jsonify({'error': 'No image provided'}), 400
-    
-    image_bytes = base64.b64decode(image_data.split(',')[1] if ',' in image_data else image_data)
+    image_bytes = base64.b64decode(request.image.split(',')[1] if ',' in request.image else request.image)
     image = Image.open(io.BytesIO(image_bytes))
     
     results = model(image)[0]
@@ -55,11 +67,9 @@ def detect():
             'className': results.names[int(box.cls[0])]
         })
     
-    return jsonify({'detections': detections})
-
-load_model()
+    return {'detections': detections}
 
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 8000))
+    uvicorn.run(app, host='0.0.0.0', port=port)

@@ -8,7 +8,7 @@ import { DefectVisualization } from './DefectVisualization';
 interface BatchResultsVisualizationProps {
   results: DetectionResult[];
   onResultSelect?: (result: DetectionResult) => void;
-  onExport?: (format: 'pdf' | 'csv' | 'json') => void;
+  onExport?: (format: 'pdf' | 'csv' | 'json') => void | Promise<void>;
   className?: string;
 }
 
@@ -27,6 +27,7 @@ export const BatchResultsVisualization: React.FC<BatchResultsVisualizationProps>
   const [sortBy, setSortBy] = useState<SortType>('time');
   const [selectedResult, setSelectedResult] = useState<DetectionResult | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Filter and sort results
   const filteredAndSortedResults = useMemo(() => {
@@ -177,20 +178,44 @@ export const BatchResultsVisualization: React.FC<BatchResultsVisualizationProps>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Export:</span>
               <button
-                onClick={() => onExport('pdf')}
-                className="px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors"
+                onClick={async () => {
+                  setIsExporting(true);
+                  try {
+                    await onExport('pdf');
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting}
+                className="px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors disabled:opacity-50"
               >
-                PDF
+                {isExporting ? 'Exporting...' : 'PDF'}
               </button>
               <button
-                onClick={() => onExport('csv')}
-                className="px-3 py-1 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded transition-colors"
+                onClick={async () => {
+                  setIsExporting(true);
+                  try {
+                    await onExport('csv');
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting}
+                className="px-3 py-1 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded transition-colors disabled:opacity-50"
               >
                 CSV
               </button>
               <button
-                onClick={() => onExport('json')}
-                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition-colors"
+                onClick={async () => {
+                  setIsExporting(true);
+                  try {
+                    await onExport('json');
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting}
+                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition-colors disabled:opacity-50"
               >
                 JSON
               </button>

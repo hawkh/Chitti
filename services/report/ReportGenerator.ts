@@ -1,17 +1,24 @@
 import { InspectionReport, ReportMetadata, ReportSummary, DetectionReportItem, ReportStatistics } from '@/types/report.types';
 import { DetectionResult, ComponentProfile, ResultStatus } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { ChartGenerator } from './ChartGenerator';
+import { GradCAMGenerator } from '../ai/GradCAMGenerator';
 
 export class ReportGenerator {
-  generateInspectionReport(
+  private chartGenerator = new ChartGenerator();
+  private gradcamGenerator = new GradCAMGenerator();
+
+  async generateInspectionReport(
     results: DetectionResult[],
     profile: ComponentProfile,
     options: {
       title?: string;
       includeRecommendations?: boolean;
       dateRange?: { from: Date; to: Date };
+      includeCharts?: boolean;
+      includeGradCAM?: boolean;
     } = {}
-  ): InspectionReport {
+  ): Promise<InspectionReport> {
     const metadata: ReportMetadata = {
       id: uuidv4(),
       title: options.title || 'Defect Detection Report',
@@ -22,11 +29,19 @@ export class ReportGenerator {
 
     const filteredResults = this.filterResultsByDateRange(results, options.dateRange);
     const summary = this.generateSummary(filteredResults, options.dateRange);
-    const detectionResults = this.mapDetectionResults(filteredResults);
+    const detectionResults = await this.mapDetectionResults(filteredResults, options.includeGradCAM);
     const statistics = this.calculateStatistics(filteredResults);
     const recommendations = options.includeRecommendations 
       ? this.generateRecommendations(statistics, summary)
       : undefined;
+
+    // Generate charts if requested
+    const charts = options.includeCharts !== false ? {
+      defectDistribution: this.chartGenerator.generateDefectDistributionChart(statistics.defectDistribution),
+      severityDistribution: this.chartGenerator.generateSeverityDistributionChart(statistics.severityDistribution),
+      confidenceDistribution: this.chartGenerator.generateConfidenceDistributionChart(filteredResults),
+      processingTime: this.chartGenerator.generateProcessingTimeChart(filteredResults)
+    } : undefined;
 
     return {
       metadata,
@@ -39,7 +54,8 @@ export class ReportGenerator {
         confidenceThreshold: profile.defaultSensitivity,
         applicableDefectTypes: profile.criticalDefects
       },
-      recommendations
+      recommendations,
+      charts
     };
   }
 
@@ -85,25 +101,60 @@ export class ReportGenerator {
     };
   }
 
-  private mapDetectionResults(results: DetectionResult[]): DetectionReportItem[] {
-    return results.map(result => ({
-      id: result.id,
-      timestamp: result.timestamp,
-      fileName: result.fileName,
-      status: result.overallStatus === ResultStatus.PASS ? 'pass' : 'fail',
-      defects: result.detectedDefects.map(defect => ({
-        type: defect.defectType.name,
-        severity: defect.severity,
-        confidence: defect.confidence,
-        location: defect.boundingBox
-      })),
-      processingTime: result.processingTime,
-      imageMetadata: {
-        width: result.metadata?.imageSize?.width || 0,
-        height: result.metadata?.imageSize?.height || 0,
-        format: result.metadata?.format || 'unknown'
+  private async mapDetectionResults(
+    results: DetectionResult[], 
+    includeGradCAM?: boolean
+  ): Promise<DetectionReportItem[]> {
+    const mappedResults: DetectionReportItem[] = [];
+
+    for (const result of results) {
+      let gradcamUrl: string | undefined;
+
+      // Generate GradCAM if requested and image is available
+      if (includeGradCAM && result.imageUrl) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = result.imageUrl!;
+          });
+
+          const defects = result.detectedDefects.map(d => ({
+            location: d.boundingBox,
+            confidence: d.confidence
+          }));
+
+          gradcamUrl = await this.gradcamGenerator.generateSimpleHeatmap(img, defects);
+        } catch (error) {
+          console.error('Failed to generate GradCAM:', error);
+        }
       }
-    }));
+
+      mappedResults.push({
+        id: result.id,
+        timestamp: result.timestamp,
+        fileName: result.fileName,
+        status: result.overallStatus === ResultStatus.PASS ? 'pass' : 'fail',
+        defects: result.detectedDefects.map(defect => ({
+          type: defect.defectType.name,
+          severity: defect.severity,
+          confidence: defect.confidence,
+          location: defect.boundingBox
+        })),
+        processingTime: result.processingTime,
+        imageMetadata: {
+          width: result.metadata?.imageSize?.width || 0,
+          height: result.metadata?.imageSize?.height || 0,
+          format: result.metadata?.format || 'unknown'
+        },
+        imageUrl: result.imageUrl,
+        gradcamUrl
+      });
+    }
+
+    return mappedResults;
   }
 
   private calculateStatistics(results: DetectionResult[]): ReportStatistics {

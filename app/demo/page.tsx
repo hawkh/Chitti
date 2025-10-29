@@ -5,7 +5,9 @@ import { Camera, Upload, Image as ImageIcon, Download, FileJson, Mail, Zap } fro
 import Link from 'next/link';
 import { RealDefectDetector } from '@/services/ai/RealDefectDetector';
 import FileUpload from '@/components/upload/FileUpload';
-import { ProcessingFile, DetectionResult } from '@/types';
+import { ProcessingFile, DetectionResult, ComponentProfile } from '@/types';
+import { ReportGenerator } from '@/services/report/ReportGenerator';
+import { ReportExporter } from '@/services/report/ReportExporter';
 
 export default function DemoPage() {
   const [mode, setMode] = useState<'camera' | 'upload' | 'sample'>('upload');
@@ -81,18 +83,28 @@ export default function DemoPage() {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = async () => {
-      if (imageRef.current && canvasRef.current) {
-        imageRef.current.src = imageUrl;
-        const detectionResult = await detectorRef.current.detectDefects(img);
-        setResult(detectionResult);
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          drawDetections(detectionResult, canvas, ctx);
+      try {
+        if (imageRef.current && canvasRef.current) {
+          imageRef.current.src = imageUrl;
+          const detectionResult = await detectorRef.current.detectDefects(img);
+          console.log('Detection result:', detectionResult);
+          setResult(detectionResult);
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            drawDetections(detectionResult, canvas, ctx);
+          }
         }
+      } catch (error) {
+        console.error('Detection error:', error);
+      } finally {
+        setIsProcessing(false);
       }
+    };
+    img.onerror = () => {
+      console.error('Image load error');
       setIsProcessing(false);
     };
     img.src = imageUrl;
@@ -142,24 +154,40 @@ export default function DemoPage() {
 
   const downloadPDF = async () => {
     if (!result) return;
+    setIsProcessing(true);
     try {
-      const response = await fetch('/api/export/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ result })
-      });
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `detection-report-${Date.now()}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }
+      // Create default profile for demo
+      const defaultProfile: ComponentProfile = {
+        id: 'demo-profile',
+        name: 'Demo Component',
+        materialType: 'metal' as any,
+        criticalDefects: ['crack', 'corrosion'] as any[],
+        defaultSensitivity: threshold / 100,
+        qualityStandards: ['ISO 9001'],
+        customParameters: {}
+      };
+
+      // Generate report with charts and GradCAM
+      const reportGenerator = new ReportGenerator();
+      const report = await reportGenerator.generateInspectionReport(
+        [result],
+        defaultProfile,
+        {
+          title: 'Demo Detection Report',
+          includeRecommendations: true,
+          includeCharts: true,
+          includeGradCAM: true
+        }
+      );
+
+      // Export to PDF
+      const reportExporter = new ReportExporter();
+      await reportExporter.downloadReport(report, 'pdf', `demo-report-${Date.now()}.pdf`);
     } catch (error) {
       console.error('PDF export failed:', error);
       alert('PDF export failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -305,13 +333,14 @@ export default function DemoPage() {
               )}
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold text-gray-300">Actions</h4>
-                <button onClick={downloadPDF} disabled={!result} className="w-full flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                  <Download className="h-4 w-4" />Download PDF
+                <p className="text-xs text-gray-500">Result: {result ? 'Available' : 'None'} | Processing: {isProcessing ? 'Yes' : 'No'}</p>
+                <button onClick={downloadPDF} disabled={!result || isProcessing} className="w-full flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Download className="h-4 w-4" />{isProcessing ? 'Generating...' : 'Download PDF'}
                 </button>
-                <button onClick={exportJSON} disabled={!result} className="w-full flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={exportJSON} disabled={!result || isProcessing} className="w-full flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed">
                   <FileJson className="h-4 w-4" />Export JSON
                 </button>
-                <button onClick={emailResult} disabled={!result} className="w-full flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={emailResult} disabled={!result || isProcessing} className="w-full flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed">
                   <Mail className="h-4 w-4" />Email Result
                 </button>
               </div>

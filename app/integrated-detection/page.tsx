@@ -8,6 +8,8 @@ import { AnalyticsDashboard } from '@/components/dashboard/AnalyticsDashboard';
 import { SearchAndFilter } from '@/components/dashboard/SearchAndFilter';
 import { DetectionResult, ComponentProfile, DefectSeverity, ResultStatus } from '@/types';
 import { ProfileService } from '@/services/profiles/ProfileService';
+import { ReportGenerator } from '@/services/report/ReportGenerator';
+import { ReportExporter } from '@/services/report/ReportExporter';
 
 type ViewMode = 'detection' | 'results' | 'profiles' | 'analytics';
 
@@ -91,10 +93,43 @@ export default function IntegratedDetectionPage() {
     }
   };
 
-  const handleExportResults = (format: 'pdf' | 'csv' | 'json') => {
-    // Implementation would use the ReportGenerator service
-    console.log(`Exporting results as ${format}`);
-    alert(`Export functionality will be implemented for ${format} format`);
+  const handleExportResults = async (format: 'pdf' | 'csv' | 'json') => {
+    try {
+      setIsLoading(true);
+      
+      // Get the first profile or create a default one
+      const profile = profiles[0] || {
+        id: 'default',
+        name: 'Default Profile',
+        materialType: 'metal',
+        defaultSensitivity: 0.7,
+        criticalDefects: ['crack', 'corrosion'],
+        description: 'Default detection profile'
+      };
+
+      const reportGenerator = new ReportGenerator();
+      const reportExporter = new ReportExporter();
+
+      // Generate report with charts and GradCAM
+      const report = await reportGenerator.generateInspectionReport(
+        detectionResults,
+        profile,
+        {
+          title: 'Defect Detection Report',
+          includeRecommendations: true,
+          includeCharts: true,
+          includeGradCAM: true
+        }
+      );
+
+      // Export in the requested format
+      await reportExporter.downloadReport(report, format);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert(`Failed to export report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const navigationItems = [

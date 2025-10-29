@@ -14,6 +14,12 @@ export interface InspectionReport {
   statistics: ReportStatistics;
   componentProfile: ComponentProfileSummary;
   recommendations?: string[];
+  charts?: {
+    defectDistribution?: string;
+    severityDistribution?: string;
+    confidenceDistribution?: string;
+    processingTime?: string;
+  };
 }
 
 export interface ReportSummary {
@@ -44,6 +50,8 @@ export interface DetectionReportItem {
     height: number;
     format: string;
   };
+  imageUrl?: string;
+  gradcamUrl?: string;
 }
 
 export interface DefectReportItem {
