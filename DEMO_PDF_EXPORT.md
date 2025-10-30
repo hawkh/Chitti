@@ -111,7 +111,7 @@ Demo mode uses a default component profile:
 │ (Single result - limited charts)        │
 ├─────────────────────────────────────────┤
 │ DETECTION RESULT                        │
-│ ┌──────────┬──────────┐                │
+│ ┌──────────┬──────────┐                 │
 │ │ Original │ GradCAM  │                │
 │ │  Image   │ Heatmap  │                │
 │ └──────────┴──────────┘                │

@@ -3,9 +3,19 @@ import autoTable from 'jspdf-autotable';
 import { InspectionReport } from '@/types/report.types';
 import { format } from 'date-fns';
 import { imageUrlToBase64 } from '@/lib/imageUtils';
+import { EnhancedPDFReportGenerator } from './EnhancedPDFReportGenerator';
 
 export class ReportExporter {
-  async exportToPDF(report: InspectionReport): Promise<Blob> {
+  private enhancedGenerator = new EnhancedPDFReportGenerator();
+
+  async exportToPDF(report: InspectionReport, useEnhanced = true): Promise<Blob> {
+    if (useEnhanced) {
+      return this.enhancedGenerator.generateComprehensiveReport(report);
+    }
+    return this.exportToLegacyPDF(report);
+  }
+
+  private async exportToLegacyPDF(report: InspectionReport): Promise<Blob> {
     const pdf = new jsPDF();
     let yPosition = 20;
 

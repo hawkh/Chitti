@@ -3,6 +3,7 @@ import { DetectionResult, ComponentProfile, ResultStatus } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { ChartGenerator } from './ChartGenerator';
 import { GradCAMGenerator } from '../ai/GradCAMGenerator';
+import { generateGradCAMServerAction } from '@/app/actions/gradcam';
 
 export class ReportGenerator {
   private chartGenerator = new ChartGenerator();
@@ -31,7 +32,7 @@ export class ReportGenerator {
     const summary = this.generateSummary(filteredResults, options.dateRange);
     const detectionResults = await this.mapDetectionResults(filteredResults, options.includeGradCAM);
     const statistics = this.calculateStatistics(filteredResults);
-    const recommendations = options.includeRecommendations 
+    const recommendations = options.includeRecommendations
       ? this.generateRecommendations(statistics, summary)
       : undefined;
 
@@ -95,14 +96,14 @@ export class ReportGenerator {
         to: results.length > 0 ? new Date(Math.max(...results.map(r => r.timestamp.getTime()))) : new Date()
       },
       criticalDefectsFound: criticalDefects,
-      mostCommonDefect: mostCommonDefectEntry 
+      mostCommonDefect: mostCommonDefectEntry
         ? { type: mostCommonDefectEntry[0], count: mostCommonDefectEntry[1] }
         : undefined
     };
   }
 
   private async mapDetectionResults(
-    results: DetectionResult[], 
+    results: DetectionResult[],
     includeGradCAM?: boolean
   ): Promise<DetectionReportItem[]> {
     const mappedResults: DetectionReportItem[] = [];
@@ -110,9 +111,14 @@ export class ReportGenerator {
     for (const result of results) {
       let gradcamUrl: string | undefined;
 
-      // Generate GradCAM if requested and image is available
       if (includeGradCAM && result.imageUrl) {
         try {
+          // Call the server action to generate Grad-CAM
+          // TODO: Replace with dynamic model ID from profile or settings
+          gradcamUrl = await generateGradCAMServerAction(result.imageUrl, 'yolov8-tfjs', undefined);
+        } catch (error) {
+          console.error('Failed to generate Grad-CAM via server action:', error);
+          // Fallback to simple heatmap on error or if server action returns undefined
           const img = new Image();
           img.crossOrigin = 'anonymous';
           await new Promise((resolve, reject) => {
@@ -120,15 +126,11 @@ export class ReportGenerator {
             img.onerror = reject;
             img.src = result.imageUrl!;
           });
-
           const defects = result.detectedDefects.map(d => ({
             location: d.boundingBox,
             confidence: d.confidence
           }));
-
           gradcamUrl = await this.gradcamGenerator.generateSimpleHeatmap(img, defects);
-        } catch (error) {
-          console.error('Failed to generate GradCAM:', error);
         }
       }
 
@@ -177,8 +179,8 @@ export class ReportGenerator {
     return {
       defectDistribution,
       severityDistribution,
-      avgProcessingTime: processingTimes.length > 0 
-        ? processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length 
+      avgProcessingTime: processingTimes.length > 0
+        ? processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length
         : 0,
       avgDefectsPerImage: results.length > 0 ? allDefects.length / results.length : 0,
       confidenceDistribution: {
