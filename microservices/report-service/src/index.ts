@@ -32,6 +32,16 @@ async function generateReport(data: any) {
 app.use(express.json());
 app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 
+app.post('/detections', async (req, res) => {
+  const detection = await prisma.detection.create({ data: req.body });
+  res.json(detection);
+});
+
+app.get('/detections/:userId', async (req, res) => {
+  const detections = await prisma.detection.findMany({ where: { userId: req.params.userId } });
+  res.json(detections);
+});
+
 app.post('/generate', async (req, res) => {
   channel.sendToQueue('report-generation', Buffer.from(JSON.stringify(req.body)));
   res.json({ status: 'queued' });

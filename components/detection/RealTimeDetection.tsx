@@ -1,15 +1,19 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, Play, Square, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Upload, Play, Square, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
 import { RealDefectDetector } from '@/services/ai/RealDefectDetector';
 import { DetectionResult } from '@/types';
+import { ComplianceChecker } from '@/components/compliance/ComplianceChecker';
+import { DefectProfile } from '@/components/defect-library/DefectProfile';
 
 export default function RealTimeDetection() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<DetectionResult | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [selectedDefect, setSelectedDefect] = useState<string | null>(null);
+  const [showCompliance, setShowCompliance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,9 +36,14 @@ export default function RealTimeDetection() {
     try {
       const detectionResult = await detectorRef.current.detectDefects(imageRef.current);
       setResult(detectionResult);
-      drawDetections(detectionResult);
+      
+      // Ensure canvas is ready before drawing
+      setTimeout(() => {
+        drawDetections(detectionResult);
+      }, 100);
     } catch (error) {
       console.error('Detection failed:', error);
+      alert('Detection failed. Make sure Python backend is running on port 5000 or 8000');
     } finally {
       setIsProcessing(false);
     }
@@ -43,27 +52,36 @@ export default function RealTimeDetection() {
   const drawDetections = (detectionResult: DetectionResult) => {
     const canvas = canvasRef.current;
     const image = imageRef.current;
-    if (!canvas || !image) return;
+    if (!canvas || !image) {
+      console.log('Canvas or image not ready');
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = image.width;
-    canvas.height = image.height;
+    // Set canvas size to match image
+    canvas.width = image.naturalWidth || image.width;
+    canvas.height = image.naturalHeight || image.height;
     
-    ctx.drawImage(image, 0, 0);
+    // Draw the image first
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    
+    console.log('Drawing detections:', detectionResult.defects.length);
     
     detectionResult.defects.forEach((defect, index) => {
       const { x, y, width, height } = defect.location;
+      
+      console.log('Drawing defect:', defect.type, { x, y, width, height });
       
       // Draw bounding box
       ctx.strokeStyle = defect.confidence > 0.8 ? '#ef4444' : '#f59e0b';
       ctx.lineWidth = 3;
       ctx.strokeRect(x, y, width, height);
       
-      // Draw label
+      // Draw label background
       ctx.fillStyle = defect.confidence > 0.8 ? '#ef4444' : '#f59e0b';
-      ctx.font = '14px Arial';
+      ctx.font = 'bold 14px Arial';
       const label = `${defect.type} (${(defect.confidence * 100).toFixed(1)}%)`;
       const textWidth = ctx.measureText(label).width;
       
@@ -172,7 +190,7 @@ export default function RealTimeDetection() {
                             {result.defects.map((defect, index) => (
                               <div key={defect.id} className="bg-white p-3 rounded border">
                                 <div className="flex justify-between items-start">
-                                  <div>
+                                  <div className="flex-1">
                                     <p className="font-medium">{defect.type}</p>
                                     <p className="text-gray-600 text-xs">{defect.description}</p>
                                   </div>
@@ -183,6 +201,13 @@ export default function RealTimeDetection() {
                                     <p className="text-xs text-gray-500">{defect.severity}</p>
                                   </div>
                                 </div>
+                                <button
+                                  onClick={() => setSelectedDefect(defect.type)}
+                                  className="mt-2 flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                                >
+                                  <BookOpen size={12} />
+                                  Learn More
+                                </button>
                               </div>
                             ))}
                           </div>
@@ -190,12 +215,58 @@ export default function RealTimeDetection() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Compliance Check Button */}
+                  <button
+                    onClick={() => setShowCompliance(!showCompliance)}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    {showCompliance ? 'Hide' : 'Show'} Compliance Check
+                  </button>
                 </>
               ) : (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
                   Upload an image and click "Detect Defects" to see results
                 </div>
               )}
+            </div>
+          </div>
+        )}
+        
+        {/* Compliance Checker */}
+        {result && showCompliance && (
+          <div className="mt-6">
+            <ComplianceChecker 
+              detections={result.defects.map(d => ({
+                id: d.id,
+                inspectionId: 'temp',
+                defectType: d.type,
+                bbox: [d.location.x, d.location.y, d.location.width, d.location.height],
+                confidence: d.confidence,
+                measurements: {},
+                severity: d.severity as any,
+                aiGenerated: true
+              }))}
+            />
+          </div>
+        )}
+        
+        {/* Defect Profile Modal */}
+        {selectedDefect && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h3 className="text-xl font-bold">Defect Information</h3>
+                <button
+                  onClick={() => setSelectedDefect(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-4">
+                <DefectProfile defectType={selectedDefect} />
+              </div>
             </div>
           </div>
         )}

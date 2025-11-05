@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, Target, Cog, BarChart3, Shield, Clock, Globe, Cpu } from "lucide-react";
+import { Zap, Target, Cog, BarChart3, Shield, Clock, Globe, Cpu, Eye, Magnet, TestTube, Waves, Radio } from "lucide-react";
 
 const features = [
   {
@@ -49,6 +49,36 @@ const features = [
     description: "ML-powered failure prediction and trend analysis",
     icon: Target,
     gradient: "from-pink-500 to-pink-600",
+  },
+  {
+    title: "Visual Testing (VT)",
+    description: "AI-powered computer vision models analyze video or high-resolution image feeds to spot surface cracks, corrosion, or weld defects in real time.",
+    icon: Eye,
+    gradient: "from-blue-500 to-blue-600",
+  },
+  {
+    title: "Magnetic Particle Testing (MT)",
+    description: "Image-based AI analyzes particle accumulation patterns under UV or white light to distinguish true indications from background noise.",
+    icon: Magnet,
+    gradient: "from-purple-500 to-purple-600",
+  },
+  {
+    title: "Penetrant Testing (PT)",
+    description: "AI algorithms process fluorescence or dye-contrast images to detect capillary-drawn penetrant in micro-cracks faster than the human eye.",
+    icon: TestTube,
+    gradient: "from-pink-500 to-pink-600",
+  },
+  {
+    title: "Ultrasonic Testing (UT)",
+    description: "AI-enhanced signal processing uses machine learning to classify echo patterns and pinpoint flaw type (e.g., slag inclusion vs. porosity).",
+    icon: Waves,
+    gradient: "from-green-500 to-green-600",
+  },
+  {
+    title: "Radiographic Testing (RT/DR)",
+    description: "Deep learning networks automatically analyze X-ray or radioscopic images to locate and categorize internal defects.",
+    icon: Radio,
+    gradient: "from-yellow-500 to-yellow-600",
   },
 ];
 

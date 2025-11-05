@@ -36,14 +36,33 @@ export class YOLODefectDetector {
     try {
       console.log('Initializing YOLO Defect Detector...');
 
-      // Set TensorFlow.js backend
-      await tf.setBackend('webgl');
+      // Set TensorFlow.js backend (prefer WebGL for performance)
+      try {
+        await tf.setBackend('webgl');
+      } catch (error) {
+        console.warn('WebGL backend not available, falling back to CPU');
+        await tf.setBackend('cpu');
+      }
       await tf.ready();
 
-      // Load the model (mock for demo)
-      console.log('Mock model loading for demo');
-      this.model = null; // Mock model
+      console.log(`TensorFlow.js backend: ${tf.getBackend()}`);
+
+      // Load the actual TensorFlow.js model
+      console.log(`Loading model from: ${modelConfig.modelUrl}`);
+      this.model = await tf.loadGraphModel(modelConfig.modelUrl);
       this.config = modelConfig;
+
+      console.log('Model loaded successfully');
+      console.log('Model inputs:', this.model.inputs.map(input => ({
+        name: input.name,
+        shape: input.shape,
+        dtype: input.dtype
+      })));
+      console.log('Model outputs:', this.model.outputs.map(output => ({
+        name: output.name,
+        shape: output.shape,
+        dtype: output.dtype
+      })));
 
       // Warm up the model
       await this.warmUpModel();
@@ -61,13 +80,24 @@ export class YOLODefectDetector {
 
     try {
       const { width, height } = this.config.inputSize;
+      console.log(`Warming up model with input size: ${width}x${height}`);
+      
+      // Create dummy input tensor [batch, height, width, channels]
       const dummyInput = tf.zeros([1, height, width, 3]);
+      
+      // Run inference to warm up the model
       const prediction = this.model.predict(dummyInput) as tf.Tensor;
+      
+      console.log('Model prediction shape:', prediction.shape);
+      
+      // Clean up tensors
       prediction.dispose();
       dummyInput.dispose();
-      console.log('Model warm-up completed');
+      
+      console.log('Model warm-up completed successfully');
     } catch (error) {
       console.warn('Model warm-up failed:', error);
+      throw new Error(`Model warm-up failed: ${error}`);
     }
   }
 
@@ -92,39 +122,26 @@ export class YOLODefectDetector {
         }
       );
 
-      // Call Python backend for real YOLO inference
-      let detections: YOLOPrediction[] = [];
+      // Run TensorFlow.js inference directly in the browser
+      console.log('Running TensorFlow.js inference...');
+      console.log('Input tensor shape:', preprocessedTensor.shape);
       
-      try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        if (imageData instanceof File) {
-          const img = await this.loadImage(imageData);
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx?.drawImage(img, 0, 0);
-        }
-        
-        const base64Image = canvas.toDataURL('image/jpeg');
-        
-        const response = await fetch(process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://localhost:5000/detect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64Image })
-        });
-        
-        const data = await response.json();
-        detections = data.detections || [];
-      } catch (error) {
-        console.error('Python API call failed, using fallback:', error);
-        detections = [{
-          bbox: [100, 100, 80, 60] as [number, number, number, number],
-          confidence: 0.85,
-          classId: 0,
-          className: 'crack'
-        }];
-      }
+      // Run model prediction
+      const predictions = this.model!.predict(preprocessedTensor) as tf.Tensor;
+      console.log('Raw prediction shape:', predictions.shape);
+      
+      // Post-process predictions to get detections
+      const detections = await this.postProcessPredictions(
+        predictions,
+        metadata.originalWidth,
+        metadata.originalHeight,
+        config
+      );
+      
+      console.log(`Found ${detections.length} detections`);
+      
+      // Clean up prediction tensor
+      predictions.dispose();
 
       // Clean up tensors
       preprocessedTensor.dispose();

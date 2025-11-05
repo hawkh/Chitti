@@ -1,0 +1,22 @@
+description: Ultralytics YOLOv12l model trained on /content/weld.yaml
+author: Ultralytics
+date: '2025-11-04T08:48:03.870899'
+version: 8.3.224
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: Bad Weld
+  1: Good Weld
+  2: Defect
+args:
+  batch: 1
+  half: false
+  int8: false
+  nms: false
+channels: 3

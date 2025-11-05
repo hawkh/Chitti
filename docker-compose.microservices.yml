@@ -11,6 +11,7 @@ services:
       - auth-service
       - file-service
       - detection-service
+      - video-service
     networks:
       - chitti-network
 
@@ -78,6 +79,24 @@ services:
     networks:
       - chitti-network
 
+  audit-service:
+    build: ./microservices/audit-service
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres/audit_db
+    depends_on:
+      - postgres
+    networks:
+      - chitti-network
+
+  video-service:
+    build: ./microservices/video-service
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      - rabbitmq
+    networks:
+      - chitti-network
+
   postgres:
     image: postgres:15
     environment:
@@ -87,6 +106,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
       - chitti-network

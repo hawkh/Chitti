@@ -11,14 +11,22 @@ interface NavigationItem {
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navigation: NavigationItem[] = [
+  const mainNav: NavigationItem[] = [
+    { name: "Detection", href: "/detection" },
+    { name: "Projects", href: "/projects" },
+    { name: "Dashboard", href: "/dashboard" },
+  ];
+
+  const moreNav: NavigationItem[] = [
+    { name: "Work Orders", href: "/work-orders" },
+    { name: "Defect Library", href: "/defect-library" },
     { name: "Demo", href: "/demo" },
-    { name: "Features", href: "/#features" },
     { name: "Pricing", href: "/pricing" },
-    { name: "Security", href: "/security" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
+
+  const [showMore, setShowMore] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-800/50 shadow-lg">
@@ -39,7 +47,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigation.map(({ name, href }) => (
+            {mainNav.map(({ name, href }) => (
               <Link
                 key={name}
                 href={href}
@@ -48,17 +56,33 @@ const Header = () => {
                 {name}
               </Link>
             ))}
+            <div className="relative">
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-gray-300 hover:text-white hover:bg-slate-800 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              >
+                More ▾
+              </button>
+              {showMore && (
+                <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-lg py-2 z-50">
+                  {moreNav.map(({ name, href }) => (
+                    <Link
+                      key={name}
+                      href={href}
+                      className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-slate-700"
+                      onClick={() => setShowMore(false)}
+                    >
+                      {name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <Link
-              href="/login"
-              className="ml-4 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              href="/detection"
+              className="ml-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold shadow-md hover:from-red-500 hover:to-red-600"
             >
-              Login
-            </Link>
-            <Link
-              href="/demo"
-              className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold shadow-md hover:from-red-500 hover:to-red-600"
-            >
-              Try Demo
+              Start Detection
             </Link>
           </nav>
 
@@ -78,7 +102,7 @@ const Header = () => {
       {isMenuOpen && (
         <div className="md:hidden border-t border-slate-800 bg-slate-900">
           <div className="px-4 pt-2 pb-3 space-y-1">
-            {navigation.map((item) => (
+            {mainNav.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -88,12 +112,25 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            <div className="border-t border-slate-700 my-2 pt-2">
+              <div className="text-xs text-gray-500 px-4 mb-2">MORE</div>
+              {moreNav.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
             <Link
-              href="/demo"
+              href="/detection"
               className="block text-center bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg font-semibold mt-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              Try Demo
+              Start Detection
             </Link>
           </div>
         </div>

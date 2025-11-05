@@ -18,6 +18,7 @@ model User {
 
   detectionJobs DetectionJob[]
   auditLogs     AuditLog[]
+  detections    Detection[]
 
   @@map("users")
 }
@@ -123,6 +124,19 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
+}
+
+model Detection {
+  id        String   @id @default(cuid())
+  userId    String
+  class     Int
+  confidence Float
+  bbox      Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("detections")
 }
 
 enum JobStatus {

@@ -30,6 +30,13 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
+    if (!job.results || job.results.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: { message: 'No results to export', code: 'NO_RESULTS' }
+      }, { status: 400 });
+    }
+
     const pdf = new jsPDF();
     
     pdf.setFontSize(20);
@@ -125,7 +132,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       error: {
-        message: 'Failed to generate PDF',
+        message: `Failed to generate PDF: ${error.message}`,
         code: 'PDF_GENERATION_ERROR'
       }
     }, { status: 500 });
