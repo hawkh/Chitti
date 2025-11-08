@@ -67,6 +67,7 @@ async def detect(request: DetectRequest):
             'className': results.names[int(box.cls[0])]
         })
     
+    print(f'Detection complete: {len(detections)} defects found')
     return {'detections': detections}
 
 if __name__ == '__main__':

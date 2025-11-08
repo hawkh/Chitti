@@ -51,26 +51,17 @@ export class RealDefectDetector {
       const data = await response.json();
       const processingTime = Date.now() - startTime;
       
+      console.log('Received detections from backend:', data.detections);
+      console.log('Number of detections:', data.detections?.length || 0);
+      
       return this.processYOLODetections(data.detections, imageElement, processingTime);
     } catch (error) {
-      console.error('Detection failed, using mock:', error);
-      return this.processDetections(this.mockDetection(), imageElement);
+      console.error('Detection failed:', error);
+      throw new Error('Python backend not available. Please start the backend server.');
     }
   }
 
-  private mockDetection(): any[] {
-    // Generate realistic mock defects
-    const mockDefects = [
-      { x: 0.2, y: 0.3, width: 0.1, height: 0.08, confidence: 0.85, type: 'crack' },
-      { x: 0.6, y: 0.5, width: 0.15, height: 0.12, confidence: 0.72, type: 'corrosion' }
-    ];
-    
-    return mockDefects.map(defect => ({
-      boxes: [[defect.y, defect.x, defect.y + defect.height, defect.x + defect.width]],
-      scores: [defect.confidence],
-      classes: [defect.type === 'crack' ? 1 : 2]
-    }));
-  }
+
 
   private processYOLODetections(detections: any[], imageElement: HTMLImageElement | ImageData, processingTime: number): DetectionResult {
     const width = imageElement instanceof HTMLImageElement ? imageElement.width : imageElement.width;
@@ -115,63 +106,7 @@ export class RealDefectDetector {
     } as DetectionResult;
   }
 
-  private processDetections(detections: any, imageElement: HTMLImageElement | ImageData): DetectionResult {
-    const width = imageElement instanceof HTMLImageElement ? imageElement.width : imageElement.width;
-    const height = imageElement instanceof HTMLImageElement ? imageElement.height : imageElement.height;
-    const defects = [];
-    const confidenceThreshold = 0.5;
 
-    // Process mock or real detections
-    if (Array.isArray(detections) && detections.length > 0) {
-      for (let i = 0; i < Math.min(detections.length, 10); i++) {
-        const detection = detections[i];
-        const confidence = Array.isArray(detection.scores) ? detection.scores[0] : Math.random() * 0.5 + 0.5;
-        
-        if (confidence > confidenceThreshold) {
-          const box = Array.isArray(detection.boxes) ? detection.boxes[0] : [0.2 + i * 0.1, 0.3 + i * 0.1, 0.3 + i * 0.1, 0.4 + i * 0.1];
-          
-          defects.push({
-            id: `defect_${Date.now()}_${i}`,
-            type: this.getDefectType(detection.classes?.[0] || i),
-            confidence,
-            location: {
-              x: box[1] * width,
-              y: box[0] * height,
-              width: (box[3] - box[1]) * width,
-              height: (box[2] - box[0]) * height
-            },
-            severity: confidence > 0.8 ? DefectSeverity.HIGH : DefectSeverity.MEDIUM,
-            description: this.getDefectDescription(detection.classes?.[0] || i),
-            affectedArea: (box[3] - box[1]) * (box[2] - box[0]) * 100
-          });
-        }
-      }
-    }
-
-    return {
-      id: `result_${Date.now()}`,
-      fileName: 'uploaded_image',
-      defects,
-      detectedDefects: defects.map(d => ({
-        id: d.id,
-        defectType: {
-          id: d.type,
-          name: d.type,
-          description: d.description,
-          category: 'structural',
-          severity: d.severity
-        },
-        confidence: d.confidence,
-        boundingBox: d.location,
-        severity: d.severity,
-        description: d.description,
-        affectedArea: d.affectedArea
-      })),
-      overallStatus: defects.length > 0 ? 'fail' : 'pass',
-      processingTime: Math.random() * 2000 + 500,
-      timestamp: new Date()
-    } as DetectionResult;
-  }
 
   private getDefectType(classId: number): DefectType {
     const types = [DefectType.CRACK, DefectType.CORROSION, DefectType.DEFORMATION, DefectType.SURFACE_IRREGULARITY];
