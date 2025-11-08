@@ -33,7 +33,8 @@ export default function PDFExportButton({ jobId, disabled }: PDFExportButtonProp
       document.body.removeChild(a);
     } catch (error) {
       console.error('PDF export error:', error);
-      alert(`Failed to export PDF: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to export PDF: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

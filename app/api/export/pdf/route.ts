@@ -129,10 +129,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('PDF export error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
       error: {
-        message: `Failed to generate PDF: ${error.message}`,
+        message: `Failed to generate PDF: ${errorMessage}`,
         code: 'PDF_GENERATION_ERROR'
       }
     }, { status: 500 });
