@@ -3,38 +3,55 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'auth-service'
+  - job_name: auth-service
     static_configs:
-      - targets: ['auth-service:3001']
-    metrics_path: '/metrics'
+      - targets:
+          - auth-service:3001
+    metrics_path: /metrics
 
-  - job_name: 'file-service'
+  - job_name: file-service
     static_configs:
-      - targets: ['file-service:3002']
-    metrics_path: '/metrics'
+      - targets:
+          - file-service:3002
+    metrics_path: /metrics
 
-  - job_name: 'report-service'
+  - job_name: report-service
     static_configs:
-      - targets: ['report-service:3003']
-    metrics_path: '/metrics'
+      - targets:
+          - report-service:3003
+    metrics_path: /metrics
 
-  - job_name: 'detection-service'
+  - job_name: detection-service
     static_configs:
-      - targets: ['detection-service:5000']
-    metrics_path: '/metrics'
+      - targets:
+          - detection-service:5000
+    metrics_path: /metrics
 
-  - job_name: 'postgres'
+  - job_name: postgres
     static_configs:
-      - targets: ['postgres-exporter:9187']
+      - targets:
+          - postgres-exporter:9187
 
-  - job_name: 'redis'
+  - job_name: redis
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets:
+          - redis-exporter:9121
 
-  - job_name: 'rabbitmq'
+  - job_name: rabbitmq
     static_configs:
-      - targets: ['rabbitmq:15692']
+      - targets:
+          - rabbitmq:15692
 
-  - job_name: 'node-exporter'
+  - job_name: node-exporter
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets:
+          - node-exporter:9100
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  App:
+    Type: AWS::SageMaker::App
+    Properties:
+      DomainId: <String>
+      AppType: <String>
+      UserProfileName: <String>
+      AppName: <String>

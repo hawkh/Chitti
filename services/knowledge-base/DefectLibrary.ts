@@ -8,7 +8,24 @@ export class DefectLibraryService {
   }
 
   getDefectInfo(defectType: string): DefectKnowledge | null {
-    return this.library.get(defectType) || null;
+    if (!defectType || typeof defectType !== 'string') return null;
+    const normalized = this.normalizeDefectType(defectType);
+    return this.library.get(normalized) || this.fuzzySearch(normalized);
+  }
+
+  private normalizeDefectType(type: string): string {
+    return type.toLowerCase().trim().replace(/[\s-]+/g, '_');
+  }
+
+  private fuzzySearch(query: string): DefectKnowledge | null {
+    const allDefects = Array.from(this.library.values());
+    for (const defect of allDefects) {
+      const normalized = this.normalizeDefectType(defect.defectType);
+      if (normalized.includes(query) || query.includes(normalized)) {
+        return defect;
+      }
+    }
+    return null;
   }
 
   getCauses(defectType: string): string[] {
@@ -36,6 +53,22 @@ export class DefectLibraryService {
 }
 
 const DEFECT_DATA: DefectKnowledge[] = [
+  {
+    id: 'good_weld',
+    defectType: 'Good Weld',
+    definition: 'Acceptable weld meeting all quality standards',
+    causes: ['Proper technique', 'Correct parameters', 'Clean materials'],
+    remedies: [],
+    preventiveMeasures: ['Maintain current practices', 'Regular equipment maintenance'],
+    standardsReference: {
+      'AWS D1.1': {
+        clause: '6.12',
+        acceptanceCriteria: 'Meets all visual inspection criteria'
+      }
+    },
+    visualExamples: [],
+    severity: 'none'
+  },
   {
     id: 'porosity',
     defectType: 'porosity',
@@ -200,6 +233,57 @@ const DEFECT_DATA: DefectKnowledge[] = [
     },
     visualExamples: ['/defects/undercut-1.jpg'],
     severity: 'moderate'
+  },
+  {
+    id: 'spatter',
+    defectType: 'spatter',
+    definition: 'Metal particles expelled during welding',
+    causes: [
+      'High voltage',
+      'Long arc length',
+      'Contaminated surface',
+      'Improper gas flow'
+    ],
+    remedies: [
+      'Reduce voltage',
+      'Shorten arc length',
+      'Clean surfaces',
+      'Adjust gas flow'
+    ],
+    preventiveMeasures: [
+      'Use anti-spatter spray',
+      'Proper parameter selection'
+    ],
+    standardsReference: {},
+    visualExamples: [],
+    severity: 'minor'
+  },
+  {
+    id: 'overlap',
+    defectType: 'overlap',
+    definition: 'Weld metal extends beyond weld toe without fusion',
+    causes: [
+      'Low heat input',
+      'Incorrect electrode angle',
+      'Slow travel speed'
+    ],
+    remedies: [
+      'Increase heat input',
+      'Correct electrode angle',
+      'Increase travel speed'
+    ],
+    preventiveMeasures: [
+      'Proper technique',
+      'Adequate heat input'
+    ],
+    standardsReference: {
+      'AWS D1.1': {
+        clause: '6.12.6',
+        acceptanceCriteria: 'Not acceptable'
+      }
+    },
+    visualExamples: [],
+    severity: 'major'
   }
 ];
 

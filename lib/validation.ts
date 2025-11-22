@@ -1,225 +1,85 @@
-// Validation utilities for AI NDT Defect Detection System
+// Input validation utilities
 
-import { 
-  SUPPORTED_IMAGE_FORMATS, 
-  SUPPORTED_VIDEO_FORMATS, 
-  MAX_FILE_SIZE,
-  MAX_BATCH_SIZE,
-  MAX_VIDEO_BATCH_SIZE
-} from './constants';
-import { DetectionConfig, ComponentProfile, DefectType, MaterialType } from '@/types';
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-}
-
-export class FileValidator {
-  static validateImageFile(file: File): ValidationResult {
-    const errors: string[] = [];
-
-    // Check file type
-    if (!SUPPORTED_IMAGE_FORMATS.includes(file.type)) {
-      errors.push(`Unsupported image format: ${file.type}. Supported formats: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`);
-    }
-
-    // Check file size
-    if (file.size > MAX_FILE_SIZE) {
-      errors.push(`File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
-    }
-
-    // Check file name
-    if (!file.name || file.name.trim().length === 0) {
-      errors.push('File name is required');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+export const validatePhone = (phone: string): { valid: boolean; error?: string } => {
+  if (!phone || typeof phone !== 'string') {
+    return { valid: false, error: 'Phone number is required' };
   }
-
-  static validateVideoFile(file: File): ValidationResult {
-    const errors: string[] = [];
-
-    // Check file type
-    if (!SUPPORTED_VIDEO_FORMATS.includes(file.type)) {
-      errors.push(`Unsupported video format: ${file.type}. Supported formats: ${SUPPORTED_VIDEO_FORMATS.join(', ')}`);
-    }
-
-    // Check file size (videos can be larger)
-    if (file.size > MAX_FILE_SIZE * 5) { // 250MB for videos
-      errors.push(`Video file size exceeds maximum limit of ${(MAX_FILE_SIZE * 5) / (1024 * 1024)}MB`);
-    }
-
-    // Check file name
-    if (!file.name || file.name.trim().length === 0) {
-      errors.push('File name is required');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+  
+  const cleaned = phone.replace(/\D/g, '');
+  
+  if (cleaned.length < 10) {
+    return { valid: false, error: 'Phone number too short' };
   }
-
-  static validateBatchUpload(files: File[]): ValidationResult {
-    const errors: string[] = [];
-
-    if (files.length === 0) {
-      errors.push('No files selected');
-      return { isValid: false, errors };
-    }
-
-    // Check batch size limits
-    const imageFiles = files.filter(f => SUPPORTED_IMAGE_FORMATS.includes(f.type));
-    const videoFiles = files.filter(f => SUPPORTED_VIDEO_FORMATS.includes(f.type));
-
-    if (imageFiles.length > MAX_BATCH_SIZE) {
-      errors.push(`Too many image files. Maximum allowed: ${MAX_BATCH_SIZE}`);
-    }
-
-    if (videoFiles.length > MAX_VIDEO_BATCH_SIZE) {
-      errors.push(`Too many video files. Maximum allowed: ${MAX_VIDEO_BATCH_SIZE}`);
-    }
-
-    // Validate each file
-    files.forEach((file, index) => {
-      const isImage = SUPPORTED_IMAGE_FORMATS.includes(file.type);
-      const isVideo = SUPPORTED_VIDEO_FORMATS.includes(file.type);
-
-      if (!isImage && !isVideo) {
-        errors.push(`File ${index + 1} (${file.name}): Unsupported file format`);
-      } else {
-        const validation = isImage 
-          ? FileValidator.validateImageFile(file)
-          : FileValidator.validateVideoFile(file);
-        
-        if (!validation.isValid) {
-          validation.errors.forEach(error => {
-            errors.push(`File ${index + 1} (${file.name}): ${error}`);
-          });
-        }
-      }
-    });
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+  
+  if (cleaned.length > 15) {
+    return { valid: false, error: 'Phone number too long' };
   }
-}
+  
+  return { valid: true };
+};
 
-export class ConfigValidator {
-  static validateDetectionConfig(config: DetectionConfig): ValidationResult {
-    const errors: string[] = [];
-
-    // Validate sensitivity
-    if (config.sensitivity < 0 || config.sensitivity > 1) {
-      errors.push('Sensitivity must be between 0 and 1');
-    }
-
-    // Validate confidence threshold
-    if (config.confidenceThreshold < 0 || config.confidenceThreshold > 1) {
-      errors.push('Confidence threshold must be between 0 and 1');
-    }
-
-    // Validate defect types
-    if (!config.defectTypes || config.defectTypes.length === 0) {
-      errors.push('At least one defect type must be selected');
-    }
-
-    // Validate component type
-    if (!config.componentType) {
-      errors.push('Component type is required');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+export const validateEmail = (email: string): { valid: boolean; error?: string } => {
+  if (!email || typeof email !== 'string') {
+    return { valid: false, error: 'Email is required' };
   }
-
-  static validateComponentProfile(profile: Omit<ComponentProfile, 'id'>): ValidationResult {
-    const errors: string[] = [];
-
-    // Validate name
-    if (!profile.name || profile.name.trim().length === 0) {
-      errors.push('Profile name is required');
-    }
-
-    if (profile.name && profile.name.length > 100) {
-      errors.push('Profile name must be less than 100 characters');
-    }
-
-    // Validate material type
-    if (!Object.values(MaterialType).includes(profile.materialType)) {
-      errors.push('Invalid material type');
-    }
-
-    // Validate sensitivity
-    if (profile.defaultSensitivity < 0 || profile.defaultSensitivity > 1) {
-      errors.push('Default sensitivity must be between 0 and 1');
-    }
-
-    // Validate critical defects
-    if (!profile.criticalDefects || profile.criticalDefects.length === 0) {
-      errors.push('At least one critical defect type must be specified');
-    }
-
-    profile.criticalDefects?.forEach((defect: DefectType) => {
-      if (!Object.values(DefectType).includes(defect)) {
-        errors.push(`Invalid defect type: ${defect}`);
-      }
-    });
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  if (!emailRegex.test(email)) {
+    return { valid: false, error: 'Invalid email format' };
   }
-}
-
-export class DataValidator {
-  static validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  
+  if (email.length > 254) {
+    return { valid: false, error: 'Email too long' };
   }
+  
+  return { valid: true };
+};
 
-  static validateRequired(value: any, fieldName: string): string | null {
-    if (value === null || value === undefined || value === '') {
-      return `${fieldName} is required`;
-    }
-    return null;
+export const validateFile = (file: File): { valid: boolean; error?: string } => {
+  if (!file) {
+    return { valid: false, error: 'No file provided' };
   }
-
-  static validateMinLength(value: string, minLength: number, fieldName: string): string | null {
-    if (value && value.length < minLength) {
-      return `${fieldName} must be at least ${minLength} characters long`;
-    }
-    return null;
+  
+  // Check file size (max 50MB)
+  const maxSize = 50 * 1024 * 1024;
+  if (file.size === 0) {
+    return { valid: false, error: 'File is empty' };
   }
-
-  static validateMaxLength(value: string, maxLength: number, fieldName: string): string | null {
-    if (value && value.length > maxLength) {
-      return `${fieldName} must be less than ${maxLength} characters long`;
-    }
-    return null;
+  
+  if (file.size > maxSize) {
+    return { valid: false, error: 'File too large (max 50MB)' };
   }
-
-  static validateRange(value: number, min: number, max: number, fieldName: string): string | null {
-    if (value < min || value > max) {
-      return `${fieldName} must be between ${min} and ${max}`;
-    }
-    return null;
+  
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return { valid: false, error: 'Invalid file type. Use JPEG, PNG, or WebP' };
   }
-}
+  
+  return { valid: true };
+};
 
-// Utility function to combine validation results
-export function combineValidationResults(...results: ValidationResult[]): ValidationResult {
-  const allErrors = results.flatMap(result => result.errors);
-  return {
-    isValid: allErrors.length === 0,
-    errors: allErrors
-  };
-}
+export const sanitizeInput = (input: string, maxLength: number = 1000): string => {
+  if (!input || typeof input !== 'string') return '';
+  
+  return input
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[<>]/g, '') // Remove potential XSS
+    .replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters
+};
+
+export const validateScore = (score: number): number => {
+  if (typeof score !== 'number' || isNaN(score) || !isFinite(score)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(100, score));
+};
+
+export const validateCarbonSaved = (carbon: number): number => {
+  if (typeof carbon !== 'number' || isNaN(carbon) || !isFinite(carbon)) {
+    return 0;
+  }
+  return Math.max(0, carbon);
+};

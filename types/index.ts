@@ -182,7 +182,8 @@ export interface AuditLogEntry {
   ipAddress?: string;
 }
 
-export type { AuditLog } from './audit.types';
+// Export audit types
+export * from './audit';
 
 // Component interfaces
 export interface ComponentType {

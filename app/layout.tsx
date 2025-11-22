@@ -1,12 +1,21 @@
 import "@/styles/globals.css";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { ToastProvider } from "@/components/shared/NotificationToast";
+import PWAInstallPrompt from "@/components/audit/PWAInstallPrompt";
+import PWAUpdateNotification from "@/components/audit/PWAUpdateNotification";
 
 export const metadata = {
   title: "Chitti AI NDT - AI-Powered Defect Detection",
   description: "Enterprise AI-powered defect detection for manufacturing quality control.",
   icons: {
     icon: "/logoc.jpg",
+  },
+  manifest: "/manifest.json",
+  themeColor: "#2563eb",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
   },
 };
 
@@ -17,10 +26,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#2563eb" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
+      <body className="bg-gradient-to-br from-zinc-900 via-neutral-900 to-stone-950">
         <ToastProvider>
           <ErrorBoundary>
             {children}
+            <PWAInstallPrompt />
+            <PWAUpdateNotification />
           </ErrorBoundary>
         </ToastProvider>
       </body>

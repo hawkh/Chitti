@@ -29,7 +29,7 @@ const Header = () => {
   const [showMore, setShowMore] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-800/50 shadow-lg">
+    <header className="sticky top-0 z-50 bg-zinc-900/90 backdrop-blur-lg border-b border-zinc-800/50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center space-x-3 group">
@@ -42,7 +42,7 @@ const Header = () => {
                 className="rounded-lg shadow-md group-hover:shadow-lg transition-shadow"
               />
             </div>
-            <span className="font-bold text-xl text-white">Chitti AI</span>
+            <span className="font-bold text-xl text-amber-100">Chitti AI</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -51,7 +51,7 @@ const Header = () => {
               <Link
                 key={name}
                 href={href}
-                className="text-gray-300 hover:text-white hover:bg-slate-800 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                className="text-amber-300 hover:text-amber-100 hover:bg-zinc-800 px-4 py-2 rounded-xl text-sm font-medium transition-all"
               >
                 {name}
               </Link>
@@ -59,17 +59,17 @@ const Header = () => {
             <div className="relative">
               <button
                 onClick={() => setShowMore(!showMore)}
-                className="text-gray-300 hover:text-white hover:bg-slate-800 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                className="text-amber-300 hover:text-amber-100 hover:bg-zinc-800 px-4 py-2 rounded-xl text-sm font-medium transition-all"
               >
                 More ▾
               </button>
               {showMore && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-lg py-2 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-zinc-800 rounded-xl shadow-lg py-2 z-50 border border-zinc-700">
                   {moreNav.map(({ name, href }) => (
                     <Link
                       key={name}
                       href={href}
-                      className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-slate-700"
+                      className="block px-4 py-2 text-sm text-amber-300 hover:text-amber-100 hover:bg-zinc-700"
                       onClick={() => setShowMore(false)}
                     >
                       {name}
@@ -80,7 +80,7 @@ const Header = () => {
             </div>
             <Link
               href="/detection"
-              className="ml-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold shadow-md hover:from-red-500 hover:to-red-600"
+              className="ml-4 bg-gradient-to-r from-orange-600 to-rose-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg hover:scale-105 transition-all text-sm font-semibold shadow-md hover:from-orange-500 hover:to-rose-500"
             >
               Start Detection
             </Link>
@@ -89,7 +89,7 @@ const Header = () => {
           {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors text-gray-300"
+            className="md:hidden p-2 rounded-xl hover:bg-zinc-800 transition-colors text-amber-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -100,25 +100,25 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-slate-900">
+        <div className="md:hidden border-t border-zinc-800 bg-zinc-900">
           <div className="px-4 pt-2 pb-3 space-y-1">
             {mainNav.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="block px-4 py-3 text-base font-medium text-gray-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                className="block px-4 py-3 text-base font-medium text-amber-300 hover:text-amber-100 hover:bg-zinc-800 rounded-xl transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            <div className="border-t border-slate-700 my-2 pt-2">
-              <div className="text-xs text-gray-500 px-4 mb-2">MORE</div>
+            <div className="border-t border-zinc-700 my-2 pt-2">
+              <div className="text-xs text-amber-600 px-4 mb-2">MORE</div>
               {moreNav.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="block px-4 py-2 text-sm text-amber-400 hover:text-amber-100 hover:bg-zinc-800 rounded-xl transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
@@ -127,7 +127,7 @@ const Header = () => {
             </div>
             <Link
               href="/detection"
-              className="block text-center bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg font-semibold mt-2"
+              className="block text-center bg-gradient-to-r from-orange-600 to-rose-600 text-white px-4 py-3 rounded-xl font-semibold mt-2"
               onClick={() => setIsMenuOpen(false)}
             >
               Start Detection
