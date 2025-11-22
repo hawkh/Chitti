@@ -36,6 +36,12 @@ export const validateEmail = (email: string): { valid: boolean; error?: string }
   return { valid: true };
 };
 
+export class FileValidator {
+  static validate(file: File): { valid: boolean; error?: string } {
+    return validateFile(file);
+  }
+}
+
 export const validateFile = (file: File): { valid: boolean; error?: string } => {
   if (!file) {
     return { valid: false, error: 'No file provided' };

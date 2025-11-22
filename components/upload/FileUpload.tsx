@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, X, FileImage, FileVideo, AlertCircle, CheckCircle } from 'lucide-react';
-import { FileValidator } from '@/lib/validation';
+import { validateFile } from '@/lib/validation';
 import { FileUtils, IdGenerator } from '@/lib/utils';
 import { ProcessingFile } from '@/types';
 
@@ -64,25 +64,34 @@ export default function FileUpload({
 
   const processFiles = async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
-    setErrors([]);
+    const validationErrors: string[] = [];
+    const validFiles: File[] = [];
 
-    // Validate batch upload
-    const batchValidation = FileValidator.validateBatchUpload(fileArray);
-    if (!batchValidation.isValid) {
-      setErrors(batchValidation.errors);
+    // Validate each file
+    for (const file of fileArray) {
+      const { valid, error } = validateFile(file);
+      if (valid) {
+        validFiles.push(file);
+      } else {
+        validationErrors.push(`${file.name}: ${error}`);
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
     // Check if adding these files would exceed the limit
-    if (uploadedFiles.length + fileArray.length > maxFiles) {
+    if (uploadedFiles.length + validFiles.length > maxFiles) {
       setErrors([`Cannot upload more than ${maxFiles} files. Currently have ${uploadedFiles.length} files.`]);
       return;
     }
 
-    // Process each file
+    // Process each valid file
     const newFiles: ProcessingFile[] = [];
     
-    for (const file of fileArray) {
+    for (const file of validFiles) {
       try {
         const preview = await generatePreview(file);
         const processingFile: ProcessingFile = {

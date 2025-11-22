@@ -3,6 +3,7 @@ import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { ToastProvider } from "@/components/shared/NotificationToast";
 import PWAInstallPrompt from "@/components/audit/PWAInstallPrompt";
 import PWAUpdateNotification from "@/components/audit/PWAUpdateNotification";
+import type { Viewport } from 'next';
 
 export const metadata = {
   title: "Chitti AI NDT - AI-Powered Defect Detection",
@@ -11,12 +12,13 @@ export const metadata = {
     icon: "/logoc.jpg",
   },
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#2563eb",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

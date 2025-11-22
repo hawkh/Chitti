@@ -1,23 +1,22 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Camera, Upload, Zap } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Camera, Zap } from 'lucide-react';
 
-export default function SimpleDemo() {
-  const searchParams = useSearchParams();
+export default function SimpleDemo({
+  searchParams
+}: {
+  searchParams: { type?: string }
+}) {
   const router = useRouter();
-  const [checkType, setCheckType] = useState<'weld' | 'etching'>('weld');
+  const type = searchParams?.type;
+  const [checkType] = useState<'weld' | 'etching'>(
+    type === 'weld' || type === 'etching' ? type : 'weld'
+  );
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const type = searchParams.get('type');
-    if (type === 'weld' || type === 'etching') {
-      setCheckType(type);
-    }
-  }, [searchParams]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

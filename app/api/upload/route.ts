@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import { FileValidator } from '@/lib/validation';
+import { validateFile } from '@/lib/validation';
 import { IdGenerator, FileUtils } from '@/lib/utils';
 import { SUPPORTED_IMAGE_FORMATS, SUPPORTED_VIDEO_FORMATS } from '@/lib/constants';
 import { prisma } from '@/lib/database';
@@ -37,15 +37,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate all files
-    const validationResult = FileValidator.validateBatchUpload(files);
-    if (!validationResult.isValid) {
+    const validationErrors: { file: string, error: string }[] = [];
+    for (const file of files) {
+      const { valid, error } = validateFile(file);
+      if (!valid) {
+        validationErrors.push({ file: file.name, error: error! });
+      }
+    }
+
+    if (validationErrors.length > 0) {
       return NextResponse.json(
         { 
           success: false, 
           error: { 
             message: 'File validation failed', 
             code: 'VALIDATION_ERROR',
-            details: validationResult.errors
+            details: validationErrors
           } 
         },
         { status: 400 }
