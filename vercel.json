@@ -1,6 +1,14 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "installCommand": "npm install"
+  "rewrites": [
+    {
+      "source": "/api/py-detect",
+      "destination": "/python-backend/app.py"
+    }
+  ],
+  "functions": {
+    "python-backend/app.py": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }

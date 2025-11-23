@@ -1,9 +1,6 @@
 import "@/styles/globals.css";
-import ErrorBoundary from "@/components/shared/ErrorBoundary";
-import { ToastProvider } from "@/components/shared/NotificationToast";
-import PWAInstallPrompt from "@/components/audit/PWAInstallPrompt";
-import PWAUpdateNotification from "@/components/audit/PWAUpdateNotification";
 import type { Viewport } from 'next';
+import Providers from '@/components/shared/Providers';
 
 export const metadata = {
   title: "Chitti AI NDT - AI-Powered Defect Detection",
@@ -34,13 +31,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="bg-gradient-to-br from-zinc-900 via-neutral-900 to-stone-950">
-        <ToastProvider>
-          <ErrorBoundary>
-            {children}
-            <PWAInstallPrompt />
-            <PWAUpdateNotification />
-          </ErrorBoundary>
-        </ToastProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

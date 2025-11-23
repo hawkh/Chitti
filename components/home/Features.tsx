@@ -1,128 +1,154 @@
 import React from "react";
-import { Zap, Target, Cog, BarChart3, Shield, Clock, Globe, Cpu, Eye, Magnet, TestTube, Waves, Radio } from "lucide-react";
+import { Zap, Target, Cog, BarChart3, Shield, Clock, Globe, Cpu, Eye, Magnet, TestTube, Waves, Radio, Layers, CheckCircle } from "lucide-react";
 
-const features = [
+const featureGroups = [
   {
-    title: "AI-Powered Detection",
-    description: "YOLO-based defect detection with enterprise precision",
-    icon: Zap,
-    gradient: "from-red-500 to-red-600",
+    title: "Core Technology",
+    description: "Powered by state-of-the-art computer vision models",
+    features: [
+      {
+        title: "AI-Powered Detection",
+        description: "YOLO-based defect detection with enterprise precision",
+        icon: Zap,
+        color: "text-yellow-400",
+        bg: "bg-yellow-400/10",
+      },
+      {
+        title: "Real-time Processing",
+        description: "Instant analysis with sub-second response times",
+        icon: Clock,
+        color: "text-blue-400",
+        bg: "bg-blue-400/10",
+      },
+      {
+        title: "Edge AI Support",
+        description: "Deploy on-premise or cloud with IoT integration",
+        icon: Cpu,
+        color: "text-purple-400",
+        bg: "bg-purple-400/10",
+      },
+      {
+        title: "Predictive Insights",
+        description: "ML-powered failure prediction and trend analysis",
+        icon: Target,
+        color: "text-red-400",
+        bg: "bg-red-400/10",
+      },
+    ]
   },
   {
-    title: "Real-time Processing",
-    description: "Instant analysis with sub-second response times",
-    icon: Clock,
-    gradient: "from-blue-500 to-blue-600",
+    title: "NDT Methods",
+    description: "Comprehensive support for standard testing protocols",
+    features: [
+      {
+        title: "Visual Testing (VT)",
+        description: "Automated surface crack and corrosion detection",
+        icon: Eye,
+        color: "text-teal-400",
+        bg: "bg-teal-400/10",
+      },
+      {
+        title: "Magnetic Particle (MT)",
+        description: "Particle accumulation pattern analysis",
+        icon: Magnet,
+        color: "text-indigo-400",
+        bg: "bg-indigo-400/10",
+      },
+      {
+        title: "Ultrasonic (UT)",
+        description: "AI-enhanced signal processing for internal flaws",
+        icon: Waves,
+        color: "text-cyan-400",
+        bg: "bg-cyan-400/10",
+      },
+      {
+        title: "Radiographic (RT)",
+        description: "Deep learning analysis of X-ray imagery",
+        icon: Radio,
+        color: "text-orange-400",
+        bg: "bg-orange-400/10",
+      },
+    ]
   },
   {
-    title: "Component Profiles",
-    description: "Customizable detection parameters for any material",
-    icon: Cog,
-    gradient: "from-purple-500 to-purple-600",
-  },
-  {
-    title: "Analytics Dashboard",
-    description: "Comprehensive insights and performance metrics",
-    icon: BarChart3,
-    gradient: "from-orange-500 to-orange-600",
-  },
-  {
-    title: "Enterprise Security",
-    description: "Bank-grade encryption and compliance standards",
-    icon: Shield,
-    gradient: "from-cyan-500 to-cyan-600",
-  },
-  {
-    title: "Edge AI Support",
-    description: "Deploy on-premise or cloud with IoT integration",
-    icon: Cpu,
-    gradient: "from-indigo-500 to-indigo-600",
-  },
-  {
-    title: "Global Standards",
-    description: "ISO 9001, ASTM compliant quality assurance",
-    icon: Globe,
-    gradient: "from-green-500 to-green-600",
-  },
-  {
-    title: "Predictive Insights",
-    description: "ML-powered failure prediction and trend analysis",
-    icon: Target,
-    gradient: "from-pink-500 to-pink-600",
-  },
-  {
-    title: "Visual Testing (VT)",
-    description: "AI-powered computer vision models analyze video or high-resolution image feeds to spot surface cracks, corrosion, or weld defects in real time.",
-    icon: Eye,
-    gradient: "from-blue-500 to-blue-600",
-  },
-  {
-    title: "Magnetic Particle Testing (MT)",
-    description: "Image-based AI analyzes particle accumulation patterns under UV or white light to distinguish true indications from background noise.",
-    icon: Magnet,
-    gradient: "from-purple-500 to-purple-600",
-  },
-  {
-    title: "Penetrant Testing (PT)",
-    description: "AI algorithms process fluorescence or dye-contrast images to detect capillary-drawn penetrant in micro-cracks faster than the human eye.",
-    icon: TestTube,
-    gradient: "from-pink-500 to-pink-600",
-  },
-  {
-    title: "Ultrasonic Testing (UT)",
-    description: "AI-enhanced signal processing uses machine learning to classify echo patterns and pinpoint flaw type (e.g., slag inclusion vs. porosity).",
-    icon: Waves,
-    gradient: "from-green-500 to-green-600",
-  },
-  {
-    title: "Radiographic Testing (RT/DR)",
-    description: "Deep learning networks automatically analyze X-ray or radioscopic images to locate and categorize internal defects.",
-    icon: Radio,
-    gradient: "from-yellow-500 to-yellow-600",
-  },
+    title: "Enterprise Ready",
+    description: "Built for scale, security, and compliance",
+    features: [
+      {
+        title: "Analytics Dashboard",
+        description: "Comprehensive insights and performance metrics",
+        icon: BarChart3,
+        color: "text-green-400",
+        bg: "bg-green-400/10",
+      },
+      {
+        title: "Enterprise Security",
+        description: "Bank-grade encryption and compliance standards",
+        icon: Shield,
+        color: "text-slate-400",
+        bg: "bg-slate-400/10",
+      },
+      {
+        title: "Global Standards",
+        description: "ISO 9001, ASTM compliant quality assurance",
+        icon: Globe,
+        color: "text-sky-400",
+        bg: "bg-sky-400/10",
+      },
+      {
+        title: "Custom Profiles",
+        description: "Tailored detection parameters for your materials",
+        icon: Cog,
+        color: "text-pink-400",
+        bg: "bg-pink-400/10",
+      },
+    ]
+  }
 ];
 
 const Features = () => {
   return (
-    <section className="py-24 relative overflow-hidden" id="features">
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black" />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-full mb-6 border border-gray-700">
-            <Zap className="h-4 w-4 text-red-500" />
-            <span className="text-sm font-semibold text-white">Enterprise Features</span>
-          </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-white">
-              Built for Modern Manufacturing
-            </span>
+    <section className="py-24 bg-black relative" id="features">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+            Comprehensive Quality Control
           </h2>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Industry-leading AI technology that transforms quality control operations
+          <p className="text-xl text-zinc-400 max-w-3xl mx-auto">
+            A complete suite of AI-powered tools designed to transform your inspection workflow.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="group relative bg-gray-900 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 border border-gray-800"
-            >
-              <div className="space-y-4">
-                <div className={`h-14 w-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                  <feature.icon
-                    className="h-7 w-7 text-white"
-                    aria-hidden="true"
-                  />
+        <div className="space-y-24">
+          {featureGroups.map((group, groupIndex) => (
+            <div key={groupIndex}>
+              <div className="flex items-center gap-4 mb-10">
+                <div className="h-px flex-1 bg-zinc-800"></div>
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-white mb-2">{group.title}</h3>
+                  <p className="text-zinc-500">{group.description}</p>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">{feature.description}</p>
-                </div>
+                <div className="h-px flex-1 bg-zinc-800"></div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {group.features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="group relative bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-all hover:-translate-y-1"
+                  >
+                    <div className={`w-12 h-12 rounded-lg ${feature.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      <feature.icon className={`h-6 w-6 ${feature.color}`} />
+                    </div>
+
+                    <h4 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                      {feature.title}
+                    </h4>
+                    <p className="text-sm text-zinc-400 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -133,3 +159,4 @@ const Features = () => {
 };
 
 export default Features;
+

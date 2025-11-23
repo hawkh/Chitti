@@ -1,131 +1,119 @@
-import * as tf from '@tensorflow/tfjs';
-import { DetectionResult, DefectType, DefectSeverity, BoundingBox } from '@/types';
+import { DetectionResult, DefectType, DefectSeverity, DetectedDefect, BoundingBox, DefectTypeInfo, ResultStatus } from '@/types';
 
 export class RealDefectDetector {
-  private model: tf.GraphModel | null = null;
-  private isLoaded = false;
 
-  async loadModel(): Promise<void> {
-    try {
-      // Use a pre-trained COCO model for demonstration
-      this.model = await tf.loadGraphModel('https://tfhub.dev/tensorflow/tfjs-model/ssd_mobilenet_v2/1/default/1', {
-        fromTFHub: true
-      });
-      this.isLoaded = true;
-    } catch (error) {
-      console.error('Failed to load model:', error);
-      // Fallback to mock detection
-      this.isLoaded = true;
-    }
-  }
+  constructor() { }
 
-  async detectDefects(imageElement: HTMLImageElement | ImageData): Promise<DetectionResult> {
+  async detectDefects(imageElement: HTMLImageElement): Promise<DetectionResult> {
     const startTime = Date.now();
-    
+
     try {
+      // Convert image to base64
       const canvas = document.createElement('canvas');
+      canvas.width = imageElement.naturalWidth || imageElement.width;
+      canvas.height = imageElement.naturalHeight || imageElement.height;
       const ctx = canvas.getContext('2d');
-      
-      if (imageElement instanceof HTMLImageElement) {
-        canvas.width = imageElement.width;
-        canvas.height = imageElement.height;
-        ctx?.drawImage(imageElement, 0, 0);
-      } else {
-        canvas.width = imageElement.width;
-        canvas.height = imageElement.height;
-        ctx?.putImageData(imageElement, 0, 0);
-      }
-      
-      const base64Image = canvas.toDataURL('image/jpeg');
-      
+      if (!ctx) throw new Error('Failed to get canvas context');
+
+      ctx.drawImage(imageElement, 0, 0);
+      const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+
+      // Call API
       const response = await fetch('/api/detect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64Image })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: base64Image }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Detection API failed');
+        throw new Error(`API call failed: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       const processingTime = Date.now() - startTime;
-      
-      console.log('Received detections from backend:', data.detections);
-      console.log('Number of detections:', data.detections?.length || 0);
-      
-      return this.processYOLODetections(data.detections, imageElement, processingTime);
+
+      return this.processApiResponse(data, imageElement, processingTime);
+
     } catch (error) {
       console.error('Detection failed:', error);
-      throw new Error('Python backend not available. Please start the backend server.');
+      throw error;
     }
   }
 
+  private processApiResponse(data: any, image: HTMLImageElement, processingTime: number): DetectionResult {
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
 
+    const detectedDefects: DetectedDefect[] = data.detections.map((det: any, index: number) => {
+      const [x, y, w, h] = det.bbox;
 
-  private processYOLODetections(detections: any[], imageElement: HTMLImageElement | ImageData, processingTime: number): DetectionResult {
-    const width = imageElement instanceof HTMLImageElement ? imageElement.width : imageElement.width;
-    const height = imageElement instanceof HTMLImageElement ? imageElement.height : imageElement.height;
-    const defects = [];
+      // Map confidence to severity
+      let severity = DefectSeverity.LOW;
+      if (det.confidence > 0.8) severity = DefectSeverity.CRITICAL;
+      else if (det.confidence > 0.6) severity = DefectSeverity.HIGH;
+      else if (det.confidence > 0.4) severity = DefectSeverity.MEDIUM;
 
-    for (const detection of detections) {
-      const [x, y, w, h] = detection.bbox;
-      defects.push({
-        id: `defect_${Date.now()}_${Math.random()}`,
-        type: detection.className || 'defect',
-        confidence: detection.confidence,
-        location: { x, y, width: w, height: h },
-        severity: detection.confidence > 0.8 ? DefectSeverity.HIGH : DefectSeverity.MEDIUM,
-        description: `${detection.className} detected with ${(detection.confidence * 100).toFixed(1)}% confidence`,
+      const defectType = this.mapClassToType(det.className || det.class || 'unknown');
+
+      return {
+        id: `defect_${Date.now()}_${index}`,
+        defectType: {
+          id: defectType,
+          name: det.className || 'Defect',
+          description: `Detected ${det.className}`,
+          category: 'visual',
+          severity
+        },
+        confidence: det.confidence,
+        boundingBox: { x, y, width: w, height: h },
+        severity,
+        description: `Detected ${det.className} with ${(det.confidence * 100).toFixed(1)}% confidence`,
         affectedArea: (w * h) / (width * height) * 100
-      });
+      };
+    });
+
+    // Determine overall status
+    let overallStatus: ResultStatus = ResultStatus.PASS;
+    if (detectedDefects.some(d => d.severity === DefectSeverity.CRITICAL || d.severity === DefectSeverity.HIGH)) {
+      overallStatus = ResultStatus.FAIL;
+    } else if (detectedDefects.length > 0) {
+      overallStatus = ResultStatus.REVIEW;
     }
 
     return {
       id: `result_${Date.now()}`,
-      fileName: 'uploaded_image',
-      defects,
-      detectedDefects: defects.map(d => ({
+      fileName: 'capture.jpg',
+      defects: detectedDefects.map(d => ({
         id: d.id,
-        defectType: {
-          id: d.type,
-          name: d.type,
-          description: d.description,
-          category: 'structural',
-          severity: d.severity
-        },
+        type: d.defectType.id as DefectType,
         confidence: d.confidence,
-        boundingBox: d.location,
+        location: d.boundingBox,
         severity: d.severity,
         description: d.description,
         affectedArea: d.affectedArea
       })),
-      overallStatus: defects.length > 0 ? 'fail' : 'pass',
+      detectedDefects,
+      overallStatus,
       processingTime,
-      timestamp: new Date()
-    } as DetectionResult;
+      timestamp: new Date(),
+      metadata: {
+        imageSize: { width, height },
+        fileSize: 0,
+        format: 'image/jpeg'
+      }
+    };
   }
 
-
-
-  private getDefectType(classId: number): DefectType {
-    const types = [DefectType.CRACK, DefectType.CORROSION, DefectType.DEFORMATION, DefectType.SURFACE_IRREGULARITY];
-    return types[classId % types.length];
+  private mapClassToType(className: string): string {
+    // Simple mapping, can be expanded
+    const lower = className.toLowerCase();
+    if (lower.includes('crack')) return 'crack';
+    if (lower.includes('porosity') || lower.includes('void')) return 'void';
+    if (lower.includes('inclusion')) return 'inclusion';
+    return 'surface_irregularity';
   }
 
-  private getDefectDescription(classId: number): string {
-    const descriptions = [
-      'Linear crack detected in material surface',
-      'Corrosion damage visible on metal surface',
-      'Structural deformation identified',
-      'Surface irregularity found'
-    ];
-    return descriptions[classId % descriptions.length];
-  }
-
-  dispose(): void {
-    if (this.model) {
-      this.model.dispose();
-    }
-  }
+  dispose(): void { }
 }

@@ -2,11 +2,10 @@ fastapi==0.109.0
 uvicorn[standard]==0.27.0
 pydantic==2.5.3
 ultralytics==8.1.0
-opencv-python==4.8.1.78
+opencv-python-headless==4.8.1.78
 numpy>=1.26.0
 pillow==10.1.0
-torch==2.1.0
-torchvision==0.16.0
+# torch and torchvision will be installed by ultralytics, hopefully picking a compatible version
 google-cloud-pubsub==2.18.4
 google-cloud-storage==2.14.0
 prometheus-client==0.19.0

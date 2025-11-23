@@ -15,9 +15,11 @@ const Header = () => {
     { name: "Detection", href: "/detection" },
     { name: "Projects", href: "/projects" },
     { name: "Dashboard", href: "/dashboard" },
+    { name: "Executive", href: "/executive" },
   ];
 
   const moreNav: NavigationItem[] = [
+    { name: "Audit", href: "/audit" },
     { name: "Work Orders", href: "/work-orders" },
     { name: "Defect Library", href: "/defect-library" },
     { name: "Demo", href: "/demo" },

@@ -26,7 +26,10 @@
       ], // Alias for lib directory
       "@/services/*": [
         "services/*"
-      ] // Alias for services directory
+      ], // Alias for services directory
+      "@/context/*": [
+        "context/*"
+      ]
     },
     "allowSyntheticDefaultImports": true, // Enable default imports for CommonJS modules
     "esModuleInterop": true, // Required for compatibility with CommonJS modules

@@ -13,7 +13,11 @@ export default function DemoPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const detectorRef = useRef<RealDefectDetector>(new RealDefectDetector());
+  const detectorRef = useRef<RealDefectDetector | null>(null);
+
+  if (typeof window !== 'undefined' && !detectorRef.current) {
+    detectorRef.current = new RealDefectDetector();
+  }
 
   const sampleImages = [
     { name: 'Sample Defects', url: '/sample-defect.svg' },
@@ -30,11 +34,11 @@ export default function DemoPage() {
   };
 
   const handleDetection = useCallback(async () => {
-    if (!imageRef.current) return;
+    if (!imageRef.current || !detectorRef.current) return;
 
     setIsProcessing(true);
     try {
-      const detectionResult = await detectorRef.current.detectDefects(imageRef.current);
+      const detectionResult = await detectorRef.current!.detectDefects(imageRef.current);
       setResult(detectionResult);
       
       setTimeout(() => {

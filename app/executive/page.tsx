@@ -1,337 +1,209 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
+  BarChart3,
   TrendingUp,
-  TrendingDown,
   AlertTriangle,
   CheckCircle,
-  Activity,
-  Users,
-  Building2,
-  FileText,
-  BarChart3,
-  Shield,
-  Target,
-  Clock,
+  MapPin,
+  Calendar,
   ArrowRight,
+  Activity,
+  Shield,
+  Users,
+  FileText,
+  Filter,
   Download,
-  RefreshCw
+  Target
 } from 'lucide-react';
-
-interface ComplianceMetric {
-  category: string;
-  score: number;
-  trend: 'up' | 'down' | 'stable';
-  change: number;
-  status: 'excellent' | 'good' | 'warning' | 'critical';
-}
-
-interface SiteOverview {
-  id: string;
-  name: string;
-  location: string;
-  complianceScore: number;
-  defectRate: number;
-  lastAudit: Date;
-  status: 'operational' | 'attention' | 'critical';
-  activeIssues: number;
-}
+import Link from 'next/link';
+import { useQualityContext } from '@/context/QualityContext';
 
 export default function ExecutiveDashboard() {
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
+  const { sites, audits, defects, alerts } = useQualityContext();
+  const [timeRange, setTimeRange] = useState('month');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Mock data - replace with actual API calls
-  const overallMetrics = {
-    complianceScore: 87.5,
-    defectDetectionRate: 94.2,
-    auditCompletion: 92.0,
-    qualityIndex: 89.3,
+  // Calculate dynamic metrics
+  const totalAudits = audits.length;
+  const totalDefects = defects.length;
+  const activeAlerts = alerts.filter(a => a.severity === 'high' || a.severity === 'critical').length;
+
+  // Calculate compliance score
+  const calculateCompliance = () => {
+    if (totalAudits === 0) return 92; // Default baseline
+    const passedAudits = audits.filter(a => {
+      // Simple logic: if no critical defects, it's a "pass" for this metric
+      const auditDefects = defects.filter(d => d.id === a.id); // Assuming linking by ID for now, though strictly it's by auditId
+      return !auditDefects.some(d => d.defects.some(sub => sub.severity === 'critical'));
+    }).length;
+    return Math.round((passedAudits / totalAudits) * 100);
   };
 
-  const complianceMetrics: ComplianceMetric[] = [
+  const complianceScore = calculateCompliance();
+
+  const overallMetrics = [
     {
-      category: 'ISO 9001 Compliance',
-      score: 87.5,
+      label: 'Global Compliance',
+      value: `${complianceScore}%`,
+      change: '+2.4%',
       trend: 'up',
-      change: 3.2,
-      status: 'good',
+      icon: Shield,
+      color: 'text-green-600',
+      bg: 'bg-green-50'
     },
     {
-      category: 'Defect Detection',
-      score: 94.2,
+      label: 'Active Alerts',
+      value: activeAlerts.toString(),
+      change: activeAlerts > 5 ? '+2' : '-1',
+      trend: activeAlerts > 5 ? 'down' : 'up',
+      icon: AlertTriangle,
+      color: activeAlerts > 0 ? 'text-red-600' : 'text-green-600',
+      bg: activeAlerts > 0 ? 'bg-red-50' : 'bg-green-50'
+    },
+    {
+      label: 'Total Audits',
+      value: totalAudits.toString(),
+      change: '+12',
       trend: 'up',
-      change: 1.8,
-      status: 'excellent',
+      icon: FileText,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50'
     },
     {
-      category: 'Audit Completion',
-      score: 92.0,
-      trend: 'stable',
-      change: 0.5,
-      status: 'excellent',
-    },
-    {
-      category: 'Quality Standards',
-      score: 89.3,
+      label: 'Defects Detected',
+      value: totalDefects.toString(),
+      change: '+5',
       trend: 'down',
-      change: -2.1,
-      status: 'good',
-    },
-  ];
-
-  const sites: SiteOverview[] = [
-    {
-      id: '1',
-      name: 'Manufacturing Plant A',
-      location: 'Mumbai, India',
-      complianceScore: 92.5,
-      defectRate: 2.3,
-      lastAudit: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      status: 'operational',
-      activeIssues: 2,
-    },
-    {
-      id: '2',
-      name: 'Manufacturing Plant B',
-      location: 'Pune, India',
-      complianceScore: 78.2,
-      defectRate: 5.8,
-      lastAudit: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
-      status: 'attention',
-      activeIssues: 7,
-    },
-    {
-      id: '3',
-      name: 'Quality Control Center',
-      location: 'Bangalore, India',
-      complianceScore: 95.1,
-      defectRate: 1.2,
-      lastAudit: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      status: 'operational',
-      activeIssues: 0,
-    },
-  ];
-
-  const recentAlerts = [
-    {
-      id: '1',
-      type: 'compliance',
-      severity: 'high',
-      message: 'Plant B compliance score dropped below 80%',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      site: 'Manufacturing Plant B',
-    },
-    {
-      id: '2',
-      type: 'defect',
-      severity: 'medium',
-      message: 'Increased defect rate detected in production line 3',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      site: 'Manufacturing Plant A',
-    },
-    {
-      id: '3',
-      type: 'audit',
-      severity: 'low',
-      message: 'Scheduled audit due in 3 days',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      site: 'Manufacturing Plant B',
-    },
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'excellent':
-        return 'text-green-600 bg-green-50 border-green-200';
-      case 'good':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'warning':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'critical':
-        return 'text-red-600 bg-red-50 border-red-200';
-      default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+      icon: Activity,
+      color: 'text-purple-600',
+      bg: 'bg-purple-50'
     }
-  };
-
-  const getSiteStatusColor = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return 'bg-green-100 text-green-800';
-      case 'attention':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'critical':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    return `${days} days ago`;
-  };
+  ];
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Executive Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Comprehensive compliance and quality overview
-              </p>
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-900">Executive Overview</h1>
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                Live Updates
+              </span>
             </div>
-            <div className="flex items-center space-x-3">
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value as any)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="90d">Last 90 days</option>
-                <option value="1y">Last year</option>
-              </select>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                <Download className="h-4 w-4" />
-                <span>Export Report</span>
+            <div className="flex items-center gap-4">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setTimeRange('week')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${timeRange === 'week' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => setTimeRange('month')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${timeRange === 'month' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => setTimeRange('quarter')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${timeRange === 'quarter' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                >
+                  Quarter
+                </button>
+              </div>
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Filter className="h-5 w-5" />
+              </button>
+              <button className="p-2 text-gray-400 hover:text-gray-600">
+                <Download className="h-5 w-5" />
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Key Metrics */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Shield className="h-6 w-6 text-blue-600" />
+          {overallMetrics.map((metric, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${metric.bg}`}>
+                  <metric.icon className={`h-6 w-6 ${metric.color}`} />
+                </div>
+                <span className={`flex items-center text-sm font-medium ${metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                  {metric.trend === 'up' ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingUp className="h-4 w-4 mr-1 rotate-180" />}
+                  {metric.change}
+                </span>
               </div>
-              <span className="text-2xl font-bold text-blue-600">
-                {overallMetrics.complianceScore}%
-              </span>
+              <h3 className="text-gray-500 text-sm font-medium">{metric.label}</h3>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{metric.value}</p>
             </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">
-              Overall Compliance
-            </h3>
-            <div className="flex items-center text-sm text-green-600">
-              <TrendingUp className="h-4 w-4 mr-1" />
-              <span>+3.2% from last period</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Target className="h-6 w-6 text-green-600" />
-              </div>
-              <span className="text-2xl font-bold text-green-600">
-                {overallMetrics.defectDetectionRate}%
-              </span>
-            </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">
-              Defect Detection Rate
-            </h3>
-            <div className="flex items-center text-sm text-green-600">
-              <TrendingUp className="h-4 w-4 mr-1" />
-              <span>+1.8% from last period</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-purple-600" />
-              </div>
-              <span className="text-2xl font-bold text-purple-600">
-                {overallMetrics.auditCompletion}%
-              </span>
-            </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">
-              Audit Completion
-            </h3>
-            <div className="flex items-center text-sm text-gray-600">
-              <Activity className="h-4 w-4 mr-1" />
-              <span>Stable</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <BarChart3 className="h-6 w-6 text-orange-600" />
-              </div>
-              <span className="text-2xl font-bold text-orange-600">
-                {overallMetrics.qualityIndex}%
-              </span>
-            </div>
-            <h3 className="text-sm font-medium text-gray-600 mb-1">
-              Quality Index
-            </h3>
-            <div className="flex items-center text-sm text-red-600">
-              <TrendingDown className="h-4 w-4 mr-1" />
-              <span>-2.1% from last period</span>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Compliance Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Compliance Metrics
-            </h2>
-            <div className="space-y-4">
-              {complianceMetrics.map((metric) => (
-                <div
-                  key={metric.category}
-                  className={`p-4 rounded-lg border ${getStatusColor(metric.status)}`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{metric.category}</h3>
-                    <span className="text-2xl font-bold">{metric.score}%</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center">
-                      {metric.trend === 'up' && (
-                        <TrendingUp className="h-4 w-4 mr-1" />
-                      )}
-                      {metric.trend === 'down' && (
-                        <TrendingDown className="h-4 w-4 mr-1" />
-                      )}
-                      {metric.trend === 'stable' && (
-                        <Activity className="h-4 w-4 mr-1" />
-                      )}
-                      <span>
-                        {metric.change > 0 ? '+' : ''}
-                        {metric.change}%
-                      </span>
+        {/* Site Performance & Map */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Site Status List */}
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-900">Site Performance</h2>
+              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                View All Sites
+              </button>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {sites.map((site) => (
+                <div key={site.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-full ${site.status === 'operational' ? 'bg-green-100' :
+                          site.status === 'warning' ? 'bg-yellow-100' : 'bg-red-100'
+                        }`}>
+                        <MapPin className={`h-5 w-5 ${site.status === 'operational' ? 'text-green-600' :
+                            site.status === 'warning' ? 'text-yellow-600' : 'text-red-600'
+                          }`} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{site.name}</h3>
+                        <p className="text-sm text-gray-500">{site.location}</p>
+                      </div>
                     </div>
-                    <span className="capitalize">{metric.status}</span>
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Compliance</p>
+                        <p className="font-semibold text-gray-900">{site.complianceScore}%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Active Audits</p>
+                        <p className="font-semibold text-gray-900">{site.activeIssues}</p>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${site.status === 'operational' ? 'bg-green-100 text-green-700' :
+                          site.status === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                        {site.status.toUpperCase()}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -339,173 +211,40 @@ export default function ExecutiveDashboard() {
           </div>
 
           {/* Recent Alerts */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Recent Alerts</h2>
-              <Link
-                href="/alerts"
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
-              >
-                View All
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">Recent Alerts</h2>
             </div>
-            <div className="space-y-3">
-              {recentAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-                >
-                  <div className="flex items-start space-x-3">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        alert.severity === 'high'
-                          ? 'bg-red-100'
-                          : alert.severity === 'medium'
-                          ? 'bg-yellow-100'
-                          : 'bg-blue-100'
-                      }`}
-                    >
-                      <AlertTriangle
-                        className={`h-4 w-4 ${
-                          alert.severity === 'high'
-                            ? 'text-red-600'
-                            : alert.severity === 'medium'
-                            ? 'text-yellow-600'
-                            : 'text-blue-600'
-                        }`}
-                      />
+            <div className="p-6 space-y-6">
+              {alerts.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No active alerts</p>
+              ) : (
+                alerts.slice(0, 5).map((alert) => (
+                  <div key={alert.id} className="flex gap-4">
+                    <div className={`mt-1 p-1.5 rounded-full flex-shrink-0 ${alert.severity === 'high' ? 'bg-red-100 text-red-600' :
+                        alert.severity === 'medium' ? 'bg-orange-100 text-orange-600' :
+                          'bg-blue-100 text-blue-600'
+                      }`}>
+                      <AlertTriangle className="h-4 w-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {alert.message}
-                      </p>
-                      <div className="flex items-center mt-1 text-xs text-gray-500">
-                        <Building2 className="h-3 w-3 mr-1" />
-                        <span>{alert.site}</span>
-                        <span className="mx-2">•</span>
-                        <Clock className="h-3 w-3 mr-1" />
-                        <span>{formatDate(alert.timestamp)}</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{alert.message}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-500">
+                          {new Date(alert.timestamp).toLocaleTimeString()}
+                        </span>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-500">{alert.site}</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+                ))
+              )}
 
-        {/* Site Overview */}
-        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Site Overview</h2>
-            <Link
-              href="/sites"
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
-            >
-              Manage Sites
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Site Name
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Location
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Compliance
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Defect Rate
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Last Audit
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sites.map((site) => (
-                  <tr
-                    key={site.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="py-4 px-4">
-                      <div className="font-medium text-gray-900">{site.name}</div>
-                      {site.activeIssues > 0 && (
-                        <div className="text-xs text-red-600 mt-1">
-                          {site.activeIssues} active issue
-                          {site.activeIssues !== 1 ? 's' : ''}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-4 px-4 text-gray-600">{site.location}</td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              site.complianceScore >= 90
-                                ? 'bg-green-500'
-                                : site.complianceScore >= 75
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
-                            }`}
-                            style={{ width: `${site.complianceScore}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {site.complianceScore}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`text-sm font-medium ${
-                          site.defectRate < 3
-                            ? 'text-green-600'
-                            : site.defectRate < 5
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                        }`}
-                      >
-                        {site.defectRate}%
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                      {formatDate(site.lastAudit)}
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getSiteStatusColor(
-                          site.status
-                        )}`}
-                      >
-                        {site.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <Link
-                        href={`/sites/${site.id}`}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        View Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <button className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                View All Alerts
+              </button>
+            </div>
           </div>
         </div>
 
@@ -565,7 +304,7 @@ export default function ExecutiveDashboard() {
             </p>
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

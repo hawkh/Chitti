@@ -34,6 +34,8 @@ export default function WorkOrdersPage() {
       priority: formData.get('priority')
     };
 
+    console.log('Creating work order with data:', data);
+
     const response = await fetch('/api/work-orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
