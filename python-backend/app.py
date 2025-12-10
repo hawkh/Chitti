@@ -23,8 +23,8 @@ async def lifespan(app: FastAPI):
         try:
             model = YOLO('best.pt')
             print('Fallback: loaded best.pt')
-        except:
-            print('Failed to load any model')
+        except Exception as e2:
+            print(f'Failed to load any model: {e2}')
     yield
 
 app = FastAPI(title="Chitti AI NDT API", lifespan=lifespan)
