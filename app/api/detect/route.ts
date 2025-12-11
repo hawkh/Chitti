@@ -10,15 +10,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
-    // If no backend URL configured, return demo mode immediately
-    if (!process.env.PYTHON_BACKEND_URL) {
-      console.log('No Python backend configured, using demo mode');
-      return NextResponse.json({ 
-        detections: [],
-        demo_mode: true 
-      });
-    }
-
+    console.log(`Calling Python backend at: ${PYTHON_BACKEND_URL}`);
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -32,17 +25,17 @@ export async function POST(request: NextRequest) {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error('Python backend detection failed');
+      throw new Error(`Python backend returned ${response.status}`);
     }
 
     const data = await response.json();
+    console.log(`Detection complete: ${data.detections?.length || 0} defects found`);
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('Detection API error:', error);
     return NextResponse.json({ 
-      error: error.name === 'AbortError' ? 'Backend timeout' : 'Detection failed',
-      detections: [],
-      demo_mode: true 
+      error: error.name === 'AbortError' ? 'Backend timeout' : 'Detection failed. Make sure Python backend is running.',
+      detections: []
     }, { status: 503 });
   }
 }
