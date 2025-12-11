@@ -10,6 +10,13 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    outputFileTracingExcludes: {
+      '*': [
+        'node_modules/@tensorflow/**',
+        'node_modules/@swc/core/**',
+        '.next/cache/**',
+      ],
+    },
   },
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -28,15 +35,12 @@ const nextConfig = {
       };
     }
     
-    // Exclude TensorFlow.js from server bundle to reduce size
+    // Exclude TensorFlow.js from server bundle - it only runs client-side
     if (isServer) {
       config.externals = config.externals || [];
-      config.externals.push({
-        '@tensorflow/tfjs': 'commonjs @tensorflow/tfjs',
-        '@tensorflow/tfjs-core': 'commonjs @tensorflow/tfjs-core',
-        '@tensorflow/tfjs-backend-cpu': 'commonjs @tensorflow/tfjs-backend-cpu',
-        '@tensorflow/tfjs-backend-webgl': 'commonjs @tensorflow/tfjs-backend-webgl',
-      });
+      if (Array.isArray(config.externals)) {
+        config.externals.push('@tensorflow/tfjs', '@tensorflow/tfjs-core', '@tensorflow/tfjs-backend-cpu', '@tensorflow/tfjs-backend-webgl');
+      }
     }
     
     return config;
