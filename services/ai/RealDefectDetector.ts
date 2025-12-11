@@ -18,8 +18,10 @@ export class RealDefectDetector {
       await tf.setBackend('webgl');
       await tf.ready();
       
-      this.model = await tf.loadGraphModel('/models/yolo-defect-detector/tfjs_model/model.json');
-      console.log('✅ TensorFlow.js model loaded successfully!');
+      // Model is too large for Vercel serverless - use demo mode for now
+      // TODO: Host model on external CDN or use smaller model
+      console.log('⚠️ Using demo mode - model files too large for Vercel');
+      this.model = null;
     } catch (error) {
       console.error('Failed to load TensorFlow.js model:', error);
     } finally {
@@ -36,11 +38,8 @@ export class RealDefectDetector {
     }
 
     if (!this.model) {
-      console.error('Model not loaded, attempting to load...');
-      await this.loadModel();
-      if (!this.model) {
-        throw new Error('Failed to load TensorFlow.js model');
-      }
+      console.log('Model not available, using demo mode');
+      return this.generateMockResult(imageElement);
     }
 
     try {
