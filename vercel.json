@@ -2,5 +2,11 @@
   "buildCommand": "npm run build -- --webpack",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "app/**/*.{js,ts,tsx}": {
+      "maxDuration": 10
+    }
+  },
+  "crons": []
 }
