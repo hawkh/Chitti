@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+python-backend
+microservices
+terraform
+k8s
+public/models
+.env.local
+.env.development
