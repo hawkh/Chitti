@@ -12,10 +12,13 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   outputFileTracingExcludes: {
-    '*': [
+    '**/*': [
       'node_modules/@tensorflow/**',
       'node_modules/@swc/core/**',
+      'node_modules/bull/**',
       '.next/cache/**',
+      'public/models/**/*.bin',
+      'public/models/**/*.pt',
     ],
   },
   images: {
