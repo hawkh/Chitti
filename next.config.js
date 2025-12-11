@@ -11,7 +11,11 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
-  turbopack: {},
+  turbopack: {
+    resolveAlias: {
+      'bull': false,
+    },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
   },
