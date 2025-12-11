@@ -1,15 +1,16 @@
+'use client';
+
 import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ImprovementActionPlanner from '@/components/audit/ImprovementActionPlanner';
 
-export default function NewImprovementActionPage({
-  searchParams
-}: {
-  searchParams: { auditId?: string; siteId?: string; siteName?: string; score?: string }
-}) {
-  const auditId = searchParams.auditId || 'audit_001';
-  const siteId = searchParams.siteId || 'site_001';
-  const siteName = searchParams.siteName || 'Manufacturing Plant A';
-  const originalScore = searchParams.score ? parseFloat(searchParams.score) : undefined;
+export default function NewImprovementActionPage() {
+  const searchParams = useSearchParams();
+  const auditId = searchParams.get('auditId') || 'audit_001';
+  const siteId = searchParams.get('siteId') || 'site_001';
+  const siteName = searchParams.get('siteName') || 'Manufacturing Plant A';
+  const scoreParam = searchParams.get('score');
+  const originalScore = scoreParam ? parseFloat(scoreParam) : undefined;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
