@@ -28,6 +28,17 @@ const nextConfig = {
       };
     }
     
+    // Exclude TensorFlow.js from server bundle to reduce size
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@tensorflow/tfjs': 'commonjs @tensorflow/tfjs',
+        '@tensorflow/tfjs-core': 'commonjs @tensorflow/tfjs-core',
+        '@tensorflow/tfjs-backend-cpu': 'commonjs @tensorflow/tfjs-backend-cpu',
+        '@tensorflow/tfjs-backend-webgl': 'commonjs @tensorflow/tfjs-backend-webgl',
+      });
+    }
+    
     return config;
   },
 };

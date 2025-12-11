@@ -2,5 +2,19 @@
   "buildCommand": "npm run build -- --webpack",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "app/**/*.{ts,tsx}": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "outputFileTracing": {
+    "ignoreDependencies": [
+      "@tensorflow/tfjs",
+      "@tensorflow/tfjs-core",
+      "@tensorflow/tfjs-backend-cpu",
+      "@tensorflow/tfjs-backend-webgl"
+    ]
+  }
 }
