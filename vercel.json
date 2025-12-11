@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/api/py-detect",
+      "source": "/api/py-detect/:path*",
       "destination": "/python-backend/app.py"
     }
   ],
