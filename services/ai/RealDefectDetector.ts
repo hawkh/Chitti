@@ -1,67 +1,140 @@
+import * as tf from '@tensorflow/tfjs';
 import { DetectionResult, DefectType, DefectSeverity, DetectedDefect, BoundingBox, DefectTypeInfo, ResultStatus } from '@/types';
 
 export class RealDefectDetector {
+  private model: tf.GraphModel | null = null;
+  private isLoading = false;
 
-  constructor() { }
+  constructor() {
+    this.loadModel();
+  }
+
+  private async loadModel() {
+    if (this.model || this.isLoading) return;
+    
+    this.isLoading = true;
+    try {
+      console.log('Loading TensorFlow.js model...');
+      await tf.setBackend('webgl');
+      await tf.ready();
+      
+      this.model = await tf.loadGraphModel('/models/yolo-defect-detector/tfjs_model/model.json');
+      console.log('✅ TensorFlow.js model loaded successfully!');
+    } catch (error) {
+      console.error('Failed to load TensorFlow.js model:', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
 
   async detectDefects(imageElement: HTMLImageElement): Promise<DetectionResult> {
     const startTime = Date.now();
 
+    // Wait for model to load if still loading
+    while (this.isLoading) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    if (!this.model) {
+      console.error('Model not loaded, attempting to load...');
+      await this.loadModel();
+      if (!this.model) {
+        throw new Error('Failed to load TensorFlow.js model');
+      }
+    }
+
     try {
-      // Convert image to base64
-      const canvas = document.createElement('canvas');
-      canvas.width = imageElement.naturalWidth || imageElement.width;
-      canvas.height = imageElement.naturalHeight || imageElement.height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Failed to get canvas context');
+      const width = imageElement.naturalWidth || imageElement.width;
+      const height = imageElement.naturalHeight || imageElement.height;
 
-      ctx.drawImage(imageElement, 0, 0);
-      const base64Image = canvas.toDataURL('image/jpeg', 0.9);
-
-      // Call API
-      const response = await fetch('/api/detect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image: base64Image }),
+      // Preprocess image for YOLO
+      const inputTensor = tf.tidy(() => {
+        let tensor = tf.browser.fromPixels(imageElement);
+        tensor = tf.image.resizeBilinear(tensor, [640, 640]);
+        tensor = tf.cast(tensor, 'float32');
+        tensor = tensor.div(255.0);
+        return tensor.expandDims(0);
       });
 
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.statusText}`);
+      // Run inference
+      console.log('Running TensorFlow.js inference...');
+      const predictions = await this.model.executeAsync(inputTensor) as tf.Tensor;
+      
+      // Process YOLO output
+      const detections = await this.processYOLOOutput(predictions, width, height);
+      
+      // Cleanup tensors
+      inputTensor.dispose();
+      if (Array.isArray(predictions)) {
+        predictions.forEach(t => t.dispose());
+      } else {
+        predictions.dispose();
       }
 
-      const data = await response.json();
       const processingTime = Date.now() - startTime;
+      console.log(`✅ Detection complete: ${detections.length} defects found in ${processingTime}ms`);
 
-      return this.processApiResponse(data, imageElement, processingTime);
+      return this.buildDetectionResult(detections, width, height, processingTime);
 
     } catch (error) {
-      console.error('Detection failed:', error);
+      console.error('TensorFlow.js detection failed:', error);
       throw error;
     }
   }
 
-  private processApiResponse(data: any, image: HTMLImageElement, processingTime: number): DetectionResult {
-    const width = image.naturalWidth || image.width;
-    const height = image.naturalHeight || image.height;
+  private async processYOLOOutput(predictions: tf.Tensor | tf.Tensor[], imgWidth: number, imgHeight: number): Promise<any[]> {
+    const predArray = Array.isArray(predictions) ? predictions[0] : predictions;
+    const data = await predArray.array() as number[][][];
+    
+    const detections: any[] = [];
+    const confidenceThreshold = 0.5;
+    
+    // YOLO output format: [batch, num_detections, 6] where 6 = [x, y, w, h, confidence, class]
+    const boxes = data[0];
+    
+    for (const box of boxes) {
+      const confidence = box[4];
+      if (confidence > confidenceThreshold) {
+        const [centerX, centerY, w, h] = box;
+        const classId = box[5];
+        
+        // Convert from center format to corner format
+        const x = (centerX - w / 2) * imgWidth / 640;
+        const y = (centerY - h / 2) * imgHeight / 640;
+        const width = w * imgWidth / 640;
+        const height = h * imgHeight / 640;
+        
+        detections.push({
+          bbox: [x, y, width, height],
+          confidence,
+          classId: Math.round(classId),
+          className: this.getClassName(Math.round(classId))
+        });
+      }
+    }
+    
+    return detections;
+  }
 
-    const detectedDefects: DetectedDefect[] = data.detections.map((det: any, index: number) => {
+  private getClassName(classId: number): string {
+    const classes = ['crack', 'corrosion', 'deformation', 'void', 'inclusion', 'surface_defect'];
+    return classes[classId] || 'defect';
+  }
+
+  private buildDetectionResult(detections: any[], width: number, height: number, processingTime: number): DetectionResult {
+    const detectedDefects: DetectedDefect[] = detections.map((det, index) => {
       const [x, y, w, h] = det.bbox;
-
-      // Map confidence to severity
+      
       let severity = DefectSeverity.LOW;
       if (det.confidence > 0.8) severity = DefectSeverity.CRITICAL;
       else if (det.confidence > 0.6) severity = DefectSeverity.HIGH;
       else if (det.confidence > 0.4) severity = DefectSeverity.MEDIUM;
 
-      const defectType = this.mapClassToType(det.className || det.class || 'unknown');
-
       return {
         id: `defect_${Date.now()}_${index}`,
         defectType: {
-          id: defectType,
-          name: det.className || 'Defect',
+          id: det.className,
+          name: det.className.charAt(0).toUpperCase() + det.className.slice(1),
           description: `Detected ${det.className}`,
           category: 'visual',
           severity
@@ -69,12 +142,11 @@ export class RealDefectDetector {
         confidence: det.confidence,
         boundingBox: { x, y, width: w, height: h },
         severity,
-        description: `Detected ${det.className} with ${(det.confidence * 100).toFixed(1)}% confidence`,
+        description: `${det.className} detected with ${(det.confidence * 100).toFixed(1)}% confidence`,
         affectedArea: (w * h) / (width * height) * 100
       };
     });
 
-    // Determine overall status
     let overallStatus: ResultStatus = ResultStatus.PASS;
     if (detectedDefects.some(d => d.severity === DefectSeverity.CRITICAL || d.severity === DefectSeverity.HIGH)) {
       overallStatus = ResultStatus.FAIL;
@@ -106,14 +178,10 @@ export class RealDefectDetector {
     };
   }
 
-  private mapClassToType(className: string): string {
-    // Simple mapping, can be expanded
-    const lower = className.toLowerCase();
-    if (lower.includes('crack')) return 'crack';
-    if (lower.includes('porosity') || lower.includes('void')) return 'void';
-    if (lower.includes('inclusion')) return 'inclusion';
-    return 'surface_irregularity';
+  dispose(): void {
+    if (this.model) {
+      this.model.dispose();
+      this.model = null;
+    }
   }
-
-  dispose(): void { }
 }
