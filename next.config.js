@@ -11,22 +11,15 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
-  turbopack: {
-    resolveAlias: {
-      'bull': false,
-    },
-  },
   images: {
     formats: ['image/avif', 'image/webp'],
   },
   webpack: (config, { isServer }) => {
-    // Ignore problematic directories
     config.watchOptions = {
       ...config.watchOptions,
       ignored: ['**/microservices/**', '**/python-backend/**', '**/terraform/**', '**/k8s/**'],
     };
     
-    // Exclude bull from client bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
