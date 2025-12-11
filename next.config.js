@@ -10,11 +10,27 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // Disable turbopack due to bull package incompatibility
-    turbo: false,
   },
   images: {
     formats: ['image/avif', 'image/webp'],
+  },
+  webpack: (config, { isServer }) => {
+    // Ignore problematic directories
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ['**/microservices/**', '**/python-backend/**', '**/terraform/**', '**/k8s/**'],
+    };
+    
+    // Exclude bull from client bundle
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        child_process: false,
+      };
+    }
+    
+    return config;
   },
 };
 
