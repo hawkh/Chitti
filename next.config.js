@@ -10,13 +10,13 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    outputFileTracingExcludes: {
-      '*': [
-        'node_modules/@tensorflow/**',
-        'node_modules/@swc/core/**',
-        '.next/cache/**',
-      ],
-    },
+  },
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@tensorflow/**',
+      'node_modules/@swc/core/**',
+      '.next/cache/**',
+    ],
   },
   images: {
     formats: ['image/avif', 'image/webp'],
