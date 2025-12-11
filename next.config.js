@@ -2,12 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Temporarily ignore build errors for demo (Next.js 15 migration in progress)
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -18,13 +14,8 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
-  webpack: (config, { isServer }) => {
-    config.watchOptions = {
-      ...config.watchOptions,
-      ignored: ['**/microservices/**', '**/python-backend/**', '**/terraform/**', '**/k8s/**', '**/tests/**'],
-    };
-    return config;
-  },
+  // Empty turbopack config to silence the warning
+  turbopack: {},
 };
 
 module.exports = nextConfig;
