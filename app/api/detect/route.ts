@@ -20,11 +20,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     const response = await fetch(`${PYTHON_BACKEND_URL}/detect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image })
+      body: JSON.stringify({ image }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error('Python backend detection failed');
@@ -32,8 +38,12 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Detection API error:', error);
-    return NextResponse.json({ error: 'Detection failed' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.name === 'AbortError' ? 'Backend timeout' : 'Detection failed',
+      detections: [],
+      demo_mode: true 
+    }, { status: 503 });
   }
 }
