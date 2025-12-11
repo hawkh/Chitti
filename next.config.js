@@ -49,11 +49,21 @@ const nextConfig = {
       };
     }
     
-    // Exclude TensorFlow.js from server bundle - it only runs client-side
+    // Exclude heavy dependencies from server bundle
     if (isServer) {
       config.externals = config.externals || [];
       if (Array.isArray(config.externals)) {
-        config.externals.push('@tensorflow/tfjs', '@tensorflow/tfjs-core', '@tensorflow/tfjs-backend-cpu', '@tensorflow/tfjs-backend-webgl');
+        config.externals.push(
+          '@tensorflow/tfjs',
+          '@tensorflow/tfjs-core', 
+          '@tensorflow/tfjs-backend-cpu',
+          '@tensorflow/tfjs-backend-webgl',
+          '@prisma/client',
+          'prisma',
+          'bull',
+          'sharp',
+          'canvas'
+        );
       }
     }
     
