@@ -3,6 +3,8 @@ import json
 import base64
 import io
 from PIL import Image
+import cv2
+import numpy as np
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -22,7 +24,8 @@ class handler(BaseHTTPRequestHandler):
             image_bytes = base64.b64decode(image_data)
             image = Image.open(io.BytesIO(image_bytes))
             
-            detections = self.generate_mock_detections(image.width, image.height)
+            # Use OpenCV for basic edge/defect detection (lightweight, no ML model needed)
+            detections = self.detect_defects_opencv(image)
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -42,25 +45,33 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
     
-    def generate_mock_detections(self, width, height):
-        import random
+    def detect_defects_opencv(self, image):
+        # Convert PIL to OpenCV
+        img_array = np.array(image)
+        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
         
-        num_defects = random.randint(1, 3)
+        # Edge detection for cracks/defects
+        edges = cv2.Canny(gray, 50, 150)
+        
+        # Find contours
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
         detections = []
+        defect_types = ['crack', 'surface_defect', 'irregularity']
         
-        defect_types = ['crack', 'corrosion', 'deformation', 'surface_defect']
+        # Get significant contours
+        for i, contour in enumerate(contours[:5]):  # Top 5 largest
+            area = cv2.contourArea(contour)
+            if area > 500:  # Minimum area threshold
+                x, y, w, h = cv2.boundingRect(contour)
+                confidence = min(0.95, 0.6 + (area / 10000))
+                
+                detections.append({
+                    'bbox': [float(x), float(y), float(w), float(h)],
+                    'confidence': float(confidence),
+                    'classId': i % len(defect_types),
+                    'className': defect_types[i % len(defect_types)]
+                })
         
-        for i in range(num_defects):
-            x = random.randint(50, width - 150)
-            y = random.randint(50, height - 150)
-            w = random.randint(80, 150)
-            h = random.randint(60, 120)
-            
-            detections.append({
-                'bbox': [float(x), float(y), float(w), float(h)],
-                'confidence': random.uniform(0.65, 0.95),
-                'classId': i % len(defect_types),
-                'className': defect_types[i % len(defect_types)]
-            })
-        
+        # If no detections, return empty (no defects found)
         return detections

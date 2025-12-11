@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: chitti-python-backend
+    name: chitti-yolo-backend
     env: python
     region: oregon
     plan: free
