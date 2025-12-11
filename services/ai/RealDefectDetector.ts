@@ -177,6 +177,68 @@ export class RealDefectDetector {
     };
   }
 
+  private generateMockResult(image: HTMLImageElement): DetectionResult {
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    
+    // Generate realistic mock detections
+    const mockDefects: DetectedDefect[] = [
+      {
+        id: `defect_${Date.now()}_0`,
+        defectType: {
+          id: 'crack',
+          name: 'Crack',
+          description: 'Surface crack detected',
+          category: 'visual',
+          severity: DefectSeverity.HIGH
+        },
+        confidence: 0.87,
+        boundingBox: { x: width * 0.25, y: height * 0.35, width: width * 0.15, height: height * 0.12 },
+        severity: DefectSeverity.HIGH,
+        description: 'Demo: Surface crack detected with 87% confidence',
+        affectedArea: 18
+      },
+      {
+        id: `defect_${Date.now()}_1`,
+        defectType: {
+          id: 'corrosion',
+          name: 'Corrosion',
+          description: 'Corrosion damage detected',
+          category: 'visual',
+          severity: DefectSeverity.MEDIUM
+        },
+        confidence: 0.72,
+        boundingBox: { x: width * 0.6, y: height * 0.5, width: width * 0.12, height: height * 0.1 },
+        severity: DefectSeverity.MEDIUM,
+        description: 'Demo: Corrosion detected with 72% confidence',
+        affectedArea: 12
+      }
+    ];
+
+    return {
+      id: `result_${Date.now()}`,
+      fileName: 'capture.jpg',
+      defects: mockDefects.map(d => ({
+        id: d.id,
+        type: d.defectType.id as DefectType,
+        confidence: d.confidence,
+        location: d.boundingBox,
+        severity: d.severity,
+        description: d.description,
+        affectedArea: d.affectedArea
+      })),
+      detectedDefects: mockDefects,
+      overallStatus: ResultStatus.FAIL,
+      processingTime: 850,
+      timestamp: new Date(),
+      metadata: {
+        imageSize: { width, height },
+        fileSize: 0,
+        format: 'image/jpeg'
+      }
+    };
+  }
+
   dispose(): void {
     if (this.model) {
       this.model.dispose();
