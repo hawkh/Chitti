@@ -12,13 +12,18 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   outputFileTracingExcludes: {
-    '**/*': [
+    '*': [
       'node_modules/@tensorflow/**',
-      'node_modules/@swc/core/**',
+      'node_modules/@swc/**',
       'node_modules/bull/**',
+      'node_modules/prisma/engines/**',
+      'node_modules/@prisma/engines/**',
       '.next/cache/**',
-      'public/models/**/*.bin',
-      'public/models/**/*.pt',
+      'public/models/**',
+      'python-backend/**',
+      'microservices/**',
+      'terraform/**',
+      'k8s/**',
     ],
   },
   images: {
