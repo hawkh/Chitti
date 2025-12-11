@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 import io
 import base64
 import uvicorn
+import os
 
 model = None
 
@@ -27,7 +28,8 @@ async def lifespan(app: FastAPI):
             print(f'Failed to load any model: {e2}')
     yield
 
-app = FastAPI(title="Chitti AI NDT API", lifespan=lifespan)
+is_vercel = os.environ.get('VERCEL') == '1'
+app = FastAPI(title="Chitti AI NDT API", lifespan=lifespan, root_path="/api/py-detect" if is_vercel else "")
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,7 +73,6 @@ async def detect(request: DetectRequest):
     return {'detections': detections}
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5001))
     print(f'Starting server on port {port}')
     uvicorn.run(app, host='0.0.0.0', port=port)

@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:5001';
+const getPythonBackendUrl = () => {
+  if (process.env.PYTHON_BACKEND_URL) {
+    return process.env.PYTHON_BACKEND_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/py-detect`;
+  }
+  return 'http://localhost:5001';
+};
+
+const PYTHON_BACKEND_URL = getPythonBackendUrl();
 
 export async function POST(request: NextRequest) {
   try {

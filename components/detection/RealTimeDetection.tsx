@@ -52,7 +52,7 @@ export default function RealTimeDetection({ mode = 'standalone', onSave }: RealT
       }, 100);
     } catch (error) {
       console.error('Detection failed:', error);
-      alert('Detection failed. Make sure Python backend is running on port 5001');
+      alert('Detection failed. Please check the backend connection.');
     } finally {
       setIsProcessing(false);
     }
