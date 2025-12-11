@@ -10,12 +10,12 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    // Disable turbopack due to bull package incompatibility
+    turbo: false,
   },
   images: {
     formats: ['image/avif', 'image/webp'],
   },
-  // Empty turbopack config to silence the warning
-  turbopack: {},
 };
 
 module.exports = nextConfig;
