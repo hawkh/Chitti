@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const getPythonBackendUrl = () => {
-  if (process.env.PYTHON_BACKEND_URL) {
-    return process.env.PYTHON_BACKEND_URL;
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/api/py-detect`;
-  }
-  return 'http://localhost:5001';
-};
-
-const PYTHON_BACKEND_URL = getPythonBackendUrl();
+const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:5001';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +8,15 @@ export async function POST(request: NextRequest) {
 
     if (!image) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+    }
+
+    // If no backend URL configured, return demo mode immediately
+    if (!process.env.PYTHON_BACKEND_URL) {
+      console.log('No Python backend configured, using demo mode');
+      return NextResponse.json({ 
+        detections: [],
+        demo_mode: true 
+      });
     }
 
     const controller = new AbortController();
