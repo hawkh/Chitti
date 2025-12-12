@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Generate realistic AI-powered mock detections for demo
-function generateRealisticDetections(imageData: string) {
-  // Simulate processing time
-  const processingTime = Math.random() * 500 + 800; // 800-1300ms
+function generateRealisticDetections() {
+  // Simulate realistic AI processing time (1.5-3 seconds)
+  const processingTime = Math.random() * 1500 + 1500; // 1500-3000ms
   
   // Generate 0-4 defects randomly (realistic distribution)
   const numDefects = Math.random() < 0.3 ? 0 : Math.floor(Math.random() * 3) + 1;
@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Simulate AI processing delay for realism
-    const { detections, processingTime } = generateRealisticDetections(image);
+    const { detections, processingTime } = generateRealisticDetections();
     
+    // Add realistic processing delay
     await new Promise(resolve => setTimeout(resolve, processingTime));
     
     console.log(`✅ AI Detection complete: ${detections.length} defects found in ${processingTime.toFixed(0)}ms`);
