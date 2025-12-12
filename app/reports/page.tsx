@@ -21,25 +21,25 @@ export default function ReportsPage() {
     const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'exports'>('overview');
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-neutral-900 to-stone-950">
             {/* Header */}
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+            <header className="bg-zinc-900/60 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-4">
-                            <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-200 via-orange-100 to-amber-300 bg-clip-text text-transparent">Reports & Analytics</h1>
+                            <span className="px-3 py-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-full text-sm font-bold">
                                 Enterprise
                             </span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <button className="p-2 text-gray-400 hover:text-gray-600">
+                            <button className="p-2 text-amber-600 hover:text-amber-400">
                                 <Calendar className="h-5 w-5" />
                             </button>
-                            <button className="p-2 text-gray-400 hover:text-gray-600">
+                            <button className="p-2 text-amber-600 hover:text-amber-400">
                                 <Filter className="h-5 w-5" />
                             </button>
-                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                            <button className="px-4 py-2 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white rounded-xl hover:shadow-2xl hover:shadow-amber-600/50 hover:scale-105 transition-all flex items-center space-x-2 font-bold">
                                 <Download className="h-4 w-4" />
                                 <span>Export All</span>
                             </button>
