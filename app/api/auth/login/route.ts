@@ -1,8 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/database';
-import bcrypt from 'bcryptjs';
-import { generateToken, updateLastLogin } from '@/lib/audit/auth';
-import { AuditUser } from '@/types/audit';
+
+// Mock users for demo
+const mockUsers = [
+  {
+    id: 'user_inspector_1',
+    email: 'inspector@demo.com',
+    name: 'John Inspector',
+    password: 'demo123',
+    role: 'INSPECTOR',
+    userType: 'INSPECTOR',
+    organizationId: 'org_1',
+    assignedSites: ['site_1', 'site_2'],
+  },
+  {
+    id: 'user_manager_1',
+    email: 'manager@demo.com',
+    name: 'Sarah Manager',
+    password: 'demo123',
+    role: 'MANAGER',
+    userType: 'MANAGER',
+    organizationId: 'org_1',
+    assignedSites: null,
+  },
+  {
+    id: 'user_admin_1',
+    email: 'admin@demo.com',
+    name: 'Admin User',
+    password: 'demo123',
+    role: 'ADMIN',
+    userType: 'ADMIN',
+    organizationId: 'org_1',
+    assignedSites: null,
+  },
+];
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,60 +42,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ 
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        password: true,
-        role: true,
-        userType: true,
-        organizationId: true,
-        assignedSites: true,
-        preferences: true,
-        lastLoginAt: true,
-      }
-    });
+    // For demo, accept any email with password "demo123"
+    let user = mockUsers.find(u => u.email === email);
+    
+    if (!user && password === 'demo123') {
+      // Create a demo user for any email
+      user = {
+        id: `user_${Date.now()}`,
+        email,
+        name: email.split('@')[0],
+        password: 'demo123',
+        role: 'INSPECTOR',
+        userType: 'INSPECTOR',
+        organizationId: 'org_demo',
+        assignedSites: ['site_demo'],
+      };
+    }
 
-    if (!user) {
+    if (!user || user.password !== password) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-    }
-
-    // Update last login time
-    await updateLastLogin(user.id);
-
-    // Create audit user object
-    const auditUser: AuditUser = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      userType: user.userType as 'INSPECTOR' | 'MANAGER' | 'ADMIN',
-      organizationId: user.organizationId,
-      assignedSites: user.assignedSites as string[] | null,
-      preferences: user.preferences,
-      lastLoginAt: user.lastLoginAt,
-    };
-
-    // Generate JWT token
-    const token = generateToken(auditUser);
+    // Generate simple token
+    const token = Buffer.from(JSON.stringify({ userId: user.id, email: user.email })).toString('base64');
 
     return NextResponse.json({
       success: true,
       user: {
-        id: auditUser.id,
-        email: auditUser.email,
-        name: auditUser.name,
-        role: auditUser.role,
-        userType: auditUser.userType,
-        organizationId: auditUser.organizationId,
-        assignedSites: auditUser.assignedSites,
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        userType: user.userType,
+        organizationId: user.organizationId,
+        assignedSites: user.assignedSites,
       },
       token,
     });
