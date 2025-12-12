@@ -50,10 +50,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
-    // Try real backend first with timeout
+    // Try real backend first with extended timeout for cold starts
     try {
+      console.log(`🔄 Attempting real backend: ${BACKEND_URL}`);
+      const startTime = Date.now();
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for cold starts
 
       const response = await fetch(`${BACKEND_URL}/detect`, {
         method: 'POST',
@@ -63,19 +66,24 @@ export async function POST(request: NextRequest) {
       });
 
       clearTimeout(timeoutId);
+      const backendTime = Date.now() - startTime;
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Real AI Detection: ${data.detections?.length || 0} defects found`);
+        console.log(`✅ Real YOLO Backend: ${data.detections?.length || 0} defects in ${backendTime}ms`);
         return NextResponse.json({
           ...data,
           model: 'YOLOv8-Defect-Detector',
+          backend: 'real',
+          processingTime: backendTime,
           timestamp: new Date().toISOString()
         });
+      } else {
+        console.log(`⚠️ Backend returned ${response.status}, using fallback`);
       }
-    } catch (backendError) {
+    } catch (backendError: any) {
       // Backend failed, silently fall back to mock
-      console.log('Backend unavailable, using AI fallback');
+      console.log(`⚠️ Backend error (${backendError.message}), using AI fallback`);
     }
 
     // Fallback to mock detections (silent - no indication to user)
