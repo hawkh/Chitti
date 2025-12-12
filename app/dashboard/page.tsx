@@ -6,7 +6,7 @@ import { DetectionResult, ResultStatus, DefectSeverity, ComponentProfile, Materi
 import { ReportGenerator } from '@/services/report/ReportGenerator';
 import { ReportExporter } from '@/services/report/ReportExporter';
 import { AuditLogger } from '@/services/AuditLogger';
-import PDFExportButton from '@/components/export/PDFExportButton';
+
 
 const mockResults: DetectionResult[] = [
   {
@@ -241,40 +241,36 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold text-amber-100">Export Reports</h2>
             </div>
             <div className="p-6">
-              <p className="text-amber-200 mb-6">
+              <p className="text-amber-200/80 mb-6">
                 Professional reports for compliance, analysis, and stakeholder communication.
               </p>
               
               <div className="space-y-3">
-                <div className="w-full">
-                  <PDFExportButton jobId="demo-job-id" />
-                </div>
-                
                 <button
                   onClick={() => handleGenerateReport('pdf')}
                   disabled={isGeneratingReport}
-                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-gradient-to-r from-zinc-800 to-neutral-800 text-amber-100 rounded-xl hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold border border-zinc-700"
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white rounded-xl hover:shadow-2xl hover:shadow-amber-600/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold border-2 border-amber-500/30"
                 >
                   <FileText className="h-5 w-5" />
-                  {isGeneratingReport ? 'Generating...' : 'Legacy PDF Report'}
+                  {isGeneratingReport ? 'Generating PDF...' : 'Export PDF Report'}
                 </button>
 
                 <button
                   onClick={() => handleGenerateReport('csv')}
                   disabled={isGeneratingReport}
-                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-gradient-to-r from-zinc-800 to-neutral-800 text-amber-100 rounded-xl hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold border border-zinc-700"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-zinc-900/80 text-amber-100 rounded-xl hover:bg-zinc-800 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold border border-amber-700/30"
                 >
                   <Download className="h-5 w-5" />
-                  {isGeneratingReport ? 'Generating...' : 'CSV Data Export'}
+                  {isGeneratingReport ? 'Generating...' : 'Export CSV Data'}
                 </button>
 
                 <button
                   onClick={() => handleGenerateReport('json')}
                   disabled={isGeneratingReport}
-                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-gradient-to-r from-zinc-800 to-neutral-800 text-amber-100 rounded-xl hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold border border-zinc-700"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-zinc-900/80 text-amber-100 rounded-xl hover:bg-zinc-800 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold border border-amber-700/30"
                 >
                   <Download className="h-5 w-5" />
-                  {isGeneratingReport ? 'Generating...' : 'JSON Data Export'}
+                  {isGeneratingReport ? 'Generating...' : 'Export JSON Data'}
                 </button>
               </div>
             </div>
