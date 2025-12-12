@@ -15,17 +15,26 @@ model = None
 async def lifespan(app: FastAPI):
     global model
     try:
-        model = YOLO('best (5).pt')
-        model.conf = 0.5
-        model.iou = 0.45
-        print('Model loaded successfully: best (5).pt')
-    except Exception as e:
-        print(f'Error loading model: {e}')
-        try:
+        # Try best-model.pt first
+        if os.path.exists('best-model.pt'):
+            model = YOLO('best-model.pt')
+            print('✅ Model loaded successfully: best-model.pt')
+        elif os.path.exists('best (5).pt'):
+            model = YOLO('best (5).pt')
+            print('✅ Model loaded successfully: best (5).pt')
+        elif os.path.exists('best.pt'):
             model = YOLO('best.pt')
-            print('Fallback: loaded best.pt')
-        except Exception as e2:
-            print(f'Failed to load any model: {e2}')
+            print('✅ Model loaded successfully: best.pt')
+        else:
+            print('⚠️ No model file found, will use mock detections')
+            model = None
+        
+        if model:
+            model.conf = 0.5
+            model.iou = 0.45
+    except Exception as e:
+        print(f'❌ Error loading model: {e}')
+        model = None
     yield
 
 is_vercel = os.environ.get('VERCEL') == '1'
