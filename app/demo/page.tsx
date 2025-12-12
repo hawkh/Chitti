@@ -91,13 +91,7 @@ export default function DemoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-neutral-900 to-stone-950">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-r from-amber-600/15 via-orange-600/10 to-rose-600/15 border border-amber-500/20 rounded-2xl p-4 mb-6 shadow-lg">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-amber-200">
-              <strong>AI Demo</strong> — Real defect detection with YOLO model
-            </p>
-          </div>
-        </div>
+
 
         <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-200 via-orange-100 to-amber-300 bg-clip-text text-transparent mb-8">AI Defect Detection Demo</h1>
 
