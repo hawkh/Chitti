@@ -10,45 +10,45 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, onEdit, onView }: ProjectCardProps) {
   const statusColors = {
-    active: 'bg-green-500',
-    completed: 'bg-blue-500',
-    on_hold: 'bg-yellow-500'
+    active: 'bg-gradient-to-r from-emerald-600 to-teal-600',
+    completed: 'bg-gradient-to-r from-blue-600 to-cyan-600',
+    on_hold: 'bg-gradient-to-r from-amber-600 to-orange-600'
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="font-semibold text-lg">{project.name}</h3>
-        <span className={`px-2 py-1 rounded text-white text-xs ${statusColors[project.status]}`}>
-          {project.status.replace('_', ' ')}
+    <div className="bg-zinc-900/60 backdrop-blur-sm rounded-2xl shadow-xl border border-zinc-800 p-6 hover:border-amber-700 hover:shadow-2xl hover:shadow-amber-600/20 transition-all">
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="font-bold text-xl text-amber-100">{project.name}</h3>
+        <span className={`px-3 py-1 rounded-lg text-white text-xs font-bold ${statusColors[project.status]}`}>
+          {project.status.replace('_', ' ').toUpperCase()}
         </span>
       </div>
 
-      <div className="space-y-2 text-sm mb-4">
+      <div className="space-y-3 text-sm mb-6">
         <div className="flex justify-between">
-          <span className="text-gray-600">Client:</span>
-          <span>{project.clientName}</span>
+          <span className="text-amber-600 font-semibold">Client:</span>
+          <span className="text-amber-100">{project.clientName}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Standards:</span>
-          <span>{project.standards.join(', ')}</span>
+          <span className="text-amber-600 font-semibold">Standards:</span>
+          <span className="text-amber-100">{project.standards.join(', ')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Team:</span>
-          <span>{project.teamMembers.length} members</span>
+          <span className="text-amber-600 font-semibold">Team:</span>
+          <span className="text-amber-100">{project.teamMembers.length} members</span>
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <button
           onClick={() => onView?.(project.id)}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-600/50 hover:scale-105 transition-all font-bold"
         >
           View
         </button>
         <button
           onClick={() => onEdit?.(project.id)}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+          className="flex-1 px-4 py-2.5 bg-zinc-950 border border-amber-700/30 text-amber-100 rounded-xl hover:bg-zinc-800 hover:scale-105 transition-all font-semibold"
         >
           Edit
         </button>
