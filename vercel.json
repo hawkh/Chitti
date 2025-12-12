@@ -6,10 +6,6 @@
   "functions": {
     "app/**/*.{js,ts,tsx}": {
       "maxDuration": 10
-    },
-    "api/python/detect.py": {
-      "runtime": "python3.9",
-      "maxDuration": 30
     }
   },
   "crons": []
