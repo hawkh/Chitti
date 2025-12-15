@@ -1,0 +1,114 @@
+2025-12-15T11:50:30.742Z [INFO]: # Build environment configured with Standard build compute type: 8GiB Memory, 4vCPUs, 128GB Disk Space
+2025-12-15T11:50:31.388Z [INFO]: # Cloning repository: git@github.com:hawkh/Chitti.git
+2025-12-15T11:50:38.168Z [INFO]: 
+2025-12-15T11:50:38.261Z [INFO]: Cloning into 'Chitti'...
+                                 Updating files:  84% (555/658)
+Updating files:  85% (560/658)
+Updating files:  86% (566/658)
+Updating files:  87% (573/658)
+Updating files:  88% (580/658)
+Updating files:  89% (586/658)
+Updating files:  90% (593/658)
+Updating files:  91% (599/658)
+Updating files:  92% (606/658)
+Updating files:  93% (612/658)
+Updating files:  94% (619/658)
+Updating files:  95% (626/658)
+Updating files:  96% (632/658)
+Updating files:  96% (636/658)
+Updating files:  97% (639/658)
+Updating files:  98% (645/658)
+Updating files:  99% (652/658)
+Updating files: 100% (658/658)
+Updating files: 100% (658/658), done.
+2025-12-15T11:50:38.262Z [INFO]: # Checking for Git submodules at: /codebuild/output/src4266191274/src/Chitti/.gitmodules
+2025-12-15T11:50:38.270Z [INFO]: # Retrieving environment cache...
+2025-12-15T11:50:38.309Z [WARNING]: ! Unable to write cache: {"code":"ERR_BAD_REQUEST","message":"Request failed with status code 404"})}
+2025-12-15T11:50:38.309Z [INFO]: ---- Setting Up SSM Secrets ----
+2025-12-15T11:50:38.309Z [INFO]: SSM params {"Path":"/amplify/d3basuahvviq0w/main/","WithDecryption":true}
+2025-12-15T11:50:38.362Z [WARNING]: !Failed to set up process.env.secrets
+2025-12-15T11:50:39.225Z [INFO]: # No package override configuration found.
+2025-12-15T11:50:39.229Z [INFO]: # Retrieving cache...
+2025-12-15T11:50:39.275Z [INFO]: # Retrieved cache
+2025-12-15T11:50:44.400Z [INFO]: ## Starting Backend Build
+                                 ## Checking for associated backend environment...
+                                 ## No backend environment association found, continuing...
+                                 ## Completed Backend Build
+2025-12-15T11:50:44.405Z [INFO]: {"backendDuration": 0}
+                                 ## Starting Frontend Build
+                                 # Starting phase: preBuild
+                                 # Executing command: npm ci --cache .npm --prefer-offline
+2025-12-15T11:51:04.171Z [WARNING]: npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2025-12-15T11:51:05.016Z [WARNING]: npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2025-12-15T11:51:05.120Z [WARNING]: npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2025-12-15T11:51:05.408Z [WARNING]: npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+2025-12-15T11:51:05.823Z [WARNING]: npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+2025-12-15T11:51:06.047Z [WARNING]: npm warn deprecated @types/bull@4.10.4: This is a stub types definition. bull provides its own type definitions, so you do not need this installed.
+2025-12-15T11:51:06.582Z [WARNING]: npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+2025-12-15T11:51:06.623Z [WARNING]: npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+2025-12-15T11:51:09.104Z [WARNING]: npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+2025-12-15T11:51:24.734Z [INFO]: > ai-defect-detection@0.1.0 postinstall
+                                 > prisma generate
+2025-12-15T11:51:25.252Z [INFO]: Prisma schema loaded from prisma/schema.prisma
+2025-12-15T11:51:25.875Z [INFO]: ✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 206ms
+                                 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+                                 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+2025-12-15T11:51:26.080Z [INFO]: added 864 packages, and audited 865 packages in 36s
+2025-12-15T11:51:26.081Z [INFO]: 197 packages are looking for funding
+                                 run `npm fund` for details
+2025-12-15T11:51:26.125Z [INFO]: 4 vulnerabilities (1 moderate, 3 high)
+                                 To address all issues, run:
+                                 npm audit fix
+                                 Run `npm audit` for details.
+2025-12-15T11:51:26.147Z [INFO]: # Completed phase: preBuild
+                                 # Starting phase: build
+                                 # Executing command: npm run build
+2025-12-15T11:51:26.276Z [INFO]: > ai-defect-detection@0.1.0 build
+                                 > prisma generate && next build
+2025-12-15T11:51:26.788Z [INFO]: Prisma schema loaded from prisma/schema.prisma
+2025-12-15T11:51:27.377Z [INFO]: ✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 205ms
+                                 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+                                 Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+2025-12-15T11:51:27.431Z [WARNING]: ┌─────────────────────────────────────────────────────────┐
+                                    │  Update available 5.22.0 -> 7.1.0                       │
+                                    │                                                         │
+                                    │  This is a major update - please follow the guide at    │
+                                    │  https://pris.ly/d/major-version-upgrade                │
+                                    │                                                         │
+                                    │  Run the following to update                            │
+                                    │    npm i --save-dev prisma@latest                       │
+                                    │    npm i @prisma/client@latest                          │
+                                    └─────────────────────────────────────────────────────────┘
+2025-12-15T11:51:28.193Z [INFO]: ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+2025-12-15T11:51:28.199Z [INFO]: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+                                 This information is used to shape Next.js' roadmap and prioritize features.
+                                 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+                                 https://nextjs.org/telemetry
+2025-12-15T11:51:28.214Z [INFO]: ▲ Next.js 16.0.8 (Turbopack)
+2025-12-15T11:51:28.214Z [INFO]: - Environments: .env.production
+                                 - Experiments (use with caution):
+2025-12-15T11:51:28.214Z [INFO]: · optimizePackageImports
+2025-12-15T11:51:28.215Z [INFO]: 
+2025-12-15T11:51:28.317Z [INFO]: Creating an optimized production build ...
+2025-12-15T11:51:28.613Z [WARNING]: ⨯ ERROR: This build is using Turbopack, with a `webpack` config and no `turbopack` config.
+                                    This may be a mistake.
+                                    As of Next.js 16 Turbopack is enabled by default and
+                                    custom webpack configurations may need to be migrated to Turbopack.
+                                    NOTE: your `webpack` config may have been added by a configuration plugin.
+                                    To configure Turbopack, see https://nextjs.org/docs/app/api-reference/next-config-js/turbopack
+                                    TIP: Many applications work fine under Turbopack with no configuration,
+                                    if that is the case for you, you can silence this error by passing the
+                                    `--turbopack` or `--webpack` flag explicitly or simply setting an
+                                    empty turbopack config in your Next config file (e.g. `turbopack: {}`).
+2025-12-15T11:51:28.811Z [WARNING]: 
+2025-12-15T11:51:28.811Z [WARNING]: > Build error occurred
+2025-12-15T11:51:28.814Z [WARNING]: Error: Call retries were exceeded
+                                    at ignore-listed frames {
+                                    type: 'WorkerError'
+                                    }
+2025-12-15T11:51:28.876Z [ERROR]: !!! Build failed
+2025-12-15T11:51:28.876Z [INFO]: Please read more about Amplify Hosting's support for SSR frameworks to find if your build failure is related to an unsupported feature: https://docs.aws.amazon.com/amplify/latest/userguide/amplify-ssr-framework-support.html. You may also find this troubleshooting guide useful: https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html
+2025-12-15T11:51:28.876Z [ERROR]: !!! Error: Command failed with exit code 1
+2025-12-15T11:51:28.876Z [INFO]: # Starting environment caching...
+2025-12-15T11:51:28.877Z [INFO]: # Environment caching completed
+

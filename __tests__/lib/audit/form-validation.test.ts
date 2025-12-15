@@ -41,7 +41,7 @@ describe('Audit Form Validation', () => {
   describe('validateResponse', () => {
     it('should return error for missing required response', () => {
       const errors = validateResponse(mockRequiredItem, undefined);
-      
+
       expect(errors).toHaveLength(1);
       expect(errors[0].severity).toBe('error');
       expect(errors[0].field).toBe('response');
@@ -52,7 +52,7 @@ describe('Audit Form Validation', () => {
         itemId: 'test_001',
         response: 'pass'
       };
-      
+
       const errors = validateResponse(mockRequiredItem, response);
       expect(errors).toHaveLength(0);
     });
@@ -62,9 +62,9 @@ describe('Audit Form Validation', () => {
         itemId: 'test_001',
         response: 'fail'
       };
-      
+
       const errors = validateResponse(mockRequiredItem, response);
-      
+
       expect(errors.length).toBeGreaterThan(0);
       expect(errors.some(e => e.field === 'severity')).toBe(true);
     });
@@ -75,9 +75,9 @@ describe('Audit Form Validation', () => {
         response: 'fail',
         severity: 'high'
       };
-      
+
       const errors = validateResponse(mockRequiredItem, response);
-      
+
       const commentWarning = errors.find(e => e.field === 'comments');
       expect(commentWarning?.severity).toBe('warning');
     });
@@ -87,9 +87,9 @@ describe('Audit Form Validation', () => {
         itemId: 'test_002',
         response: 'pass'
       };
-      
+
       const errors = validateResponse(mockOptionalItem, response);
-      
+
       const evidenceWarning = errors.find(e => e.field === 'evidence');
       expect(evidenceWarning?.severity).toBe('warning');
     });
@@ -101,9 +101,9 @@ describe('Audit Form Validation', () => {
         auditDate: new Date(),
         responses: {}
       };
-      
+
       const result = validateAuditForm(formData);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.totalErrors).toBeGreaterThan(0);
     });
@@ -113,9 +113,9 @@ describe('Audit Form Validation', () => {
         auditDate: new Date(),
         responses: {}
       };
-      
+
       const result = validateAuditForm(formData);
-      
+
       expect(result.missingRequired.length).toBeGreaterThan(0);
     });
 
@@ -130,9 +130,9 @@ describe('Audit Form Validation', () => {
           }
         }
       };
-      
+
       const result = validateAuditForm(formData);
-      
+
       expect(result.incompleteFails.length).toBeGreaterThan(0);
     });
   });
@@ -140,7 +140,7 @@ describe('Audit Form Validation', () => {
   describe('calculateOverallProgress', () => {
     it('should calculate 0% for empty responses', () => {
       const progress = calculateOverallProgress({});
-      
+
       expect(progress.percentage).toBe(0);
       expect(progress.answered).toBe(0);
       expect(progress.requiredAnswered).toBe(0);
@@ -151,9 +151,9 @@ describe('Audit Form Validation', () => {
         'ctx_001': { itemId: 'ctx_001', response: 'pass' },
         'ctx_002': { itemId: 'ctx_002', response: 'fail', severity: 'low' }
       };
-      
+
       const progress = calculateOverallProgress(responses);
-      
+
       expect(progress.answered).toBe(2);
       expect(progress.percentage).toBeGreaterThan(0);
     });
@@ -165,9 +165,9 @@ describe('Audit Form Validation', () => {
         auditDate: new Date(),
         responses: {}
       };
-      
+
       const result = canSubmitForm(formData);
-      
+
       expect(result.canSubmit).toBe(false);
       expect(result.reason).toBeDefined();
     });
@@ -206,9 +206,9 @@ describe('Audit Form Validation', () => {
           'impr_003': { itemId: 'impr_003', response: 'pass' }
         }
       };
-      
+
       const result = canSubmitForm(formData);
-      
+
       expect(result.canSubmit).toBe(true);
     });
   });
@@ -223,11 +223,12 @@ describe('Audit Form Validation', () => {
         missingRequired: [],
         incompleteFails: [],
         totalErrors: 0,
-        totalWarnings: 0
+        totalWarnings: 0,
+        totalInfo: 0
       };
-      
+
       const summary = getValidationSummary(validation);
-      
+
       expect(summary).toContain('Ready to submit');
     });
 
@@ -235,15 +236,17 @@ describe('Audit Form Validation', () => {
       const validation = {
         isValid: false,
         errors: { test: 'error' },
+        warnings: {},
         detailedErrors: [],
         missingRequired: ['test_001', 'test_002'],
         incompleteFails: [],
         totalErrors: 2,
-        totalWarnings: 0
+        totalWarnings: 0,
+        totalInfo: 0
       };
-      
+
       const summary = getValidationSummary(validation);
-      
+
       expect(summary).toContain('required field');
     });
   });

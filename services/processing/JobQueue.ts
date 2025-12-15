@@ -1,4 +1,12 @@
-import Bull from 'bull';
+/**
+ * JobQueue - In-memory job queue for defect detection
+ * 
+ * Note: Bull/Redis-based queue removed due to Turbopack compatibility issues.
+ * This provides a simple in-memory alternative suitable for serverless deployments.
+ * For production with high load, consider using a managed queue service like
+ * AWS SQS, Google Cloud Tasks, or running a separate worker process.
+ */
+
 import { prisma } from '@/lib/database';
 import { ScalableModelManager } from '../ai/ScalableModelManager';
 import { WebSocketManager } from '../websocket/WebSocketManager';
@@ -16,24 +24,30 @@ interface DetectionJobData {
   }>;
 }
 
+interface QueuedJob {
+  id: string;
+  data: DetectionJobData;
+  priority: number;
+  attempts: number;
+  maxAttempts: number;
+  status: 'waiting' | 'active' | 'completed' | 'failed';
+  createdAt: Date;
+  processedOn?: Date;
+  finishedOn?: Date;
+  failedReason?: string;
+  progress: number;
+}
+
 export class JobQueue {
   private static instance: JobQueue;
-  private queue: Bull.Queue;
+  private jobs: Map<string, QueuedJob> = new Map();
   private modelManager: ScalableModelManager;
   private wsManager: WebSocketManager;
+  private isProcessing: boolean = false;
 
   private constructor() {
-    this.queue = new Bull('defect-detection', {
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-      },
-    });
-
     this.modelManager = ScalableModelManager.getInstance();
     this.wsManager = WebSocketManager.getInstance();
-    this.setupProcessors();
   }
 
   static getInstance(): JobQueue {
@@ -43,181 +57,201 @@ export class JobQueue {
     return JobQueue.instance;
   }
 
-  private setupProcessors(): void {
-    this.queue.process('detect-defects', 3, async (job) => {
-      const { jobId, userId, modelId, files } = job.data as DetectionJobData;
-      
-      try {
-        // Update job status to processing
-        await prisma.detectionJob.update({
-          where: { id: jobId },
-          data: { 
-            status: JobStatus.PROCESSING,
-            startedAt: new Date()
-          }
-        });
+  private async processQueue(): Promise<void> {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
 
-        // Broadcast job started
-        this.wsManager.broadcastJobProgress(jobId, 0, 'processing', { message: 'Job started' });
+    try {
+      // Get waiting jobs sorted by priority
+      const waitingJobs = Array.from(this.jobs.values())
+        .filter(job => job.status === 'waiting')
+        .sort((a, b) => b.priority - a.priority);
 
-        let processedFiles = 0;
-        const totalFiles = files.length;
-
-        for (const file of files) {
-          try {
-            // Update file status
-            await prisma.detectionFile.update({
-              where: { id: file.id },
-              data: { status: FileStatus.PROCESSING }
-            });
-
-            // Read file buffer
-            const imageBuffer = await readFile(file.filePath);
-            
-            // Run detection
-            const result = await this.modelManager.detectDefects(modelId, imageBuffer);
-            
-            // Save result to database
-            await prisma.detectionResult.create({
-              data: {
-                jobId,
-                fileId: file.id,
-                overallStatus: result.overallStatus,
-                processingTime: result.processingTime,
-                defectsFound: result.defects.length,
-                confidence: result.defects.length > 0 
-                  ? result.defects.reduce((sum, d) => sum + d.confidence, 0) / result.defects.length 
-                  : 1.0,
-                detections: result.detectedDefects as any
-              }
-            });
-
-            // Update file status
-            await prisma.detectionFile.update({
-              where: { id: file.id },
-              data: { 
-                status: FileStatus.COMPLETED,
-                processedAt: new Date()
-              }
-            });
-
-            processedFiles++;
-            
-            // Update job progress
-            const progress = (processedFiles / totalFiles) * 100;
-            await prisma.detectionJob.update({
-              where: { id: jobId },
-              data: { 
-                progress,
-                processedFiles
-              }
-            });
-
-            // Update job progress in Bull
-            job.progress(progress);
-
-            // Broadcast progress update
-            this.wsManager.broadcastJobProgress(jobId, progress, 'processing', {
-              processedFiles,
-              totalFiles,
-              currentFile: file.originalName
-            });
-
-          } catch (fileError) {
-            console.error(`Error processing file ${file.id}:`, fileError);
-            
-            // Mark file as failed
-            await prisma.detectionFile.update({
-              where: { id: file.id },
-              data: { status: FileStatus.FAILED }
-            });
-          }
-        }
-
-        // Complete job
-        await prisma.detectionJob.update({
-          where: { id: jobId },
-          data: { 
-            status: JobStatus.COMPLETED,
-            completedAt: new Date(),
-            progress: 100
-          }
-        });
-
-        // Broadcast job completion
-        this.wsManager.broadcastJobCompleted(jobId, { processedFiles, totalFiles });
-
-        return { success: true, processedFiles, totalFiles };
-
-      } catch (error) {
-        console.error(`Job ${jobId} failed:`, error);
-        
-        // Mark job as failed
-        await prisma.detectionJob.update({
-          where: { id: jobId },
-          data: { 
-            status: JobStatus.FAILED,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            completedAt: new Date()
-          }
-        });
-
-        // Broadcast job failure
-        this.wsManager.broadcastJobFailed(jobId, error instanceof Error ? error.message : 'Unknown error');
-
-        throw error;
+      for (const queuedJob of waitingJobs) {
+        await this.processJob(queuedJob);
       }
-    });
-
-    // Job event handlers
-    this.queue.on('completed', (job, result) => {
-      console.log(`Job ${job.id} completed:`, result);
-    });
-
-    this.queue.on('failed', (job, err) => {
-      console.error(`Job ${job.id} failed:`, err);
-    });
-
-    this.queue.on('progress', (job, progress) => {
-      console.log(`Job ${job.id} progress: ${progress}%`);
-    });
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
-  async addDetectionJob(data: DetectionJobData, priority: number = 0): Promise<Bull.Job> {
-    return this.queue.add('detect-defects', data, {
+  private async processJob(queuedJob: QueuedJob): Promise<void> {
+    const { jobId, userId, modelId, files } = queuedJob.data;
+
+    queuedJob.status = 'active';
+    queuedJob.processedOn = new Date();
+
+    try {
+      // Update job status to processing
+      await prisma.detectionJob.update({
+        where: { id: jobId },
+        data: {
+          status: JobStatus.PROCESSING,
+          startedAt: new Date()
+        }
+      });
+
+      // Broadcast job started
+      this.wsManager.broadcastJobProgress(jobId, 0, 'processing', { message: 'Job started' });
+
+      let processedFiles = 0;
+      const totalFiles = files.length;
+
+      for (const file of files) {
+        try {
+          // Update file status
+          await prisma.detectionFile.update({
+            where: { id: file.id },
+            data: { status: FileStatus.PROCESSING }
+          });
+
+          // Read file buffer
+          const imageBuffer = await readFile(file.filePath);
+
+          // Run detection
+          const result = await this.modelManager.detectDefects(modelId, imageBuffer);
+
+          // Save result to database
+          await prisma.detectionResult.create({
+            data: {
+              jobId,
+              fileId: file.id,
+              overallStatus: result.overallStatus,
+              processingTime: result.processingTime,
+              defectsFound: result.defects.length,
+              confidence: result.defects.length > 0
+                ? result.defects.reduce((sum, d) => sum + d.confidence, 0) / result.defects.length
+                : 1.0,
+              detections: result.detectedDefects as any
+            }
+          });
+
+          // Update file status
+          await prisma.detectionFile.update({
+            where: { id: file.id },
+            data: {
+              status: FileStatus.COMPLETED,
+              processedAt: new Date()
+            }
+          });
+
+          processedFiles++;
+
+          // Update job progress
+          const progress = (processedFiles / totalFiles) * 100;
+          await prisma.detectionJob.update({
+            where: { id: jobId },
+            data: {
+              progress,
+              processedFiles
+            }
+          });
+
+          // Update queue progress
+          queuedJob.progress = progress;
+
+          // Broadcast progress update
+          this.wsManager.broadcastJobProgress(jobId, progress, 'processing', {
+            processedFiles,
+            totalFiles,
+            currentFile: file.originalName
+          });
+
+        } catch (fileError) {
+          console.error(`Error processing file ${file.id}:`, fileError);
+
+          // Mark file as failed
+          await prisma.detectionFile.update({
+            where: { id: file.id },
+            data: { status: FileStatus.FAILED }
+          });
+        }
+      }
+
+      // Complete job
+      await prisma.detectionJob.update({
+        where: { id: jobId },
+        data: {
+          status: JobStatus.COMPLETED,
+          completedAt: new Date(),
+          progress: 100
+        }
+      });
+
+      queuedJob.status = 'completed';
+      queuedJob.finishedOn = new Date();
+      queuedJob.progress = 100;
+
+      // Broadcast job completion
+      this.wsManager.broadcastJobCompleted(jobId, { processedFiles, totalFiles });
+
+      console.log(`Job ${jobId} completed: ${processedFiles}/${totalFiles} files processed`);
+
+    } catch (error) {
+      console.error(`Job ${jobId} failed:`, error);
+
+      queuedJob.status = 'failed';
+      queuedJob.finishedOn = new Date();
+      queuedJob.failedReason = error instanceof Error ? error.message : 'Unknown error';
+      queuedJob.attempts++;
+
+      // Mark job as failed
+      await prisma.detectionJob.update({
+        where: { id: jobId },
+        data: {
+          status: JobStatus.FAILED,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          completedAt: new Date()
+        }
+      });
+
+      // Broadcast job failure
+      this.wsManager.broadcastJobFailed(jobId, error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  async addDetectionJob(data: DetectionJobData, priority: number = 0): Promise<QueuedJob> {
+    const queuedJob: QueuedJob = {
+      id: data.jobId,
+      data,
       priority,
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 2000,
-      },
-      removeOnComplete: 10,
-      removeOnFail: 5,
-    });
+      attempts: 0,
+      maxAttempts: 3,
+      status: 'waiting',
+      createdAt: new Date(),
+      progress: 0
+    };
+
+    this.jobs.set(data.jobId, queuedJob);
+
+    // Start processing asynchronously
+    setImmediate(() => this.processQueue());
+
+    return queuedJob;
   }
 
   async getJobStatus(jobId: string): Promise<any> {
-    const job = await this.queue.getJob(jobId);
+    const job = this.jobs.get(jobId);
     if (!job) return null;
 
     return {
       id: job.id,
-      status: await job.getState(),
-      progress: job.progress(),
+      status: job.status,
+      progress: job.progress,
       data: job.data,
-      createdAt: new Date(job.timestamp),
-      processedOn: job.processedOn ? new Date(job.processedOn) : null,
-      finishedOn: job.finishedOn ? new Date(job.finishedOn) : null,
+      createdAt: job.createdAt,
+      processedOn: job.processedOn,
+      finishedOn: job.finishedOn,
       failedReason: job.failedReason,
     };
   }
 
   async cancelJob(jobId: string): Promise<boolean> {
-    const job = await this.queue.getJob(jobId);
-    if (!job) return false;
+    const job = this.jobs.get(jobId);
+    if (!job || job.status !== 'waiting') return false;
 
-    await job.remove();
-    
+    this.jobs.delete(jobId);
+
     // Update database
     await prisma.detectionJob.update({
       where: { id: jobId },
@@ -228,30 +262,34 @@ export class JobQueue {
   }
 
   async getQueueStats(): Promise<any> {
-    const waiting = await this.queue.getWaiting();
-    const active = await this.queue.getActive();
-    const completed = await this.queue.getCompleted();
-    const failed = await this.queue.getFailed();
+    const jobs = Array.from(this.jobs.values());
 
     return {
-      waiting: waiting.length,
-      active: active.length,
-      completed: completed.length,
-      failed: failed.length,
-      total: waiting.length + active.length + completed.length + failed.length
+      waiting: jobs.filter(j => j.status === 'waiting').length,
+      active: jobs.filter(j => j.status === 'active').length,
+      completed: jobs.filter(j => j.status === 'completed').length,
+      failed: jobs.filter(j => j.status === 'failed').length,
+      total: jobs.length
     };
   }
 
   async pauseQueue(): Promise<void> {
-    await this.queue.pause();
+    // No-op for in-memory queue
+    console.log('Queue pause requested (no-op for in-memory queue)');
   }
 
   async resumeQueue(): Promise<void> {
-    await this.queue.resume();
+    // Trigger processing
+    setImmediate(() => this.processQueue());
   }
 
   async cleanQueue(): Promise<void> {
-    await this.queue.clean(24 * 60 * 60 * 1000, 'completed');
-    await this.queue.clean(24 * 60 * 60 * 1000, 'failed');
+    const cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 hours ago
+
+    for (const [id, job] of this.jobs) {
+      if (job.finishedOn && job.finishedOn.getTime() < cutoff) {
+        this.jobs.delete(id);
+      }
+    }
   }
 }

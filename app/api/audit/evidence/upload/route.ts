@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     // Determine file type
     const mimeType = file.type;
     let fileType: 'PHOTO' | 'VIDEO' | 'DOCUMENT';
-    
+
     if (mimeType.startsWith('image/')) {
       fileType = 'PHOTO';
     } else if (mimeType.startsWith('video/')) {
@@ -119,10 +119,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Configure for file uploads
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

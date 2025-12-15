@@ -5,20 +5,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FileUpload from '@/components/upload/FileUpload';
 import { SUPPORTED_IMAGE_FORMATS, MAX_FILE_SIZE } from '../../../lib/constants';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { beforeEach } from 'node:test';
-import { describe } from 'node:test';
 
 // Mock the utility functions
 jest.mock('../../../lib/utils', () => ({
@@ -55,7 +41,7 @@ describe('FileUpload Component', () => {
 
   it('renders upload area correctly', () => {
     render(<FileUpload {...defaultProps} />);
-    
+
     expect(screen.getByText('Upload files')).toBeInTheDocument();
     expect(screen.getByText('Drag and drop files here, or click to select')).toBeInTheDocument();
     expect(screen.getByText(/Supported formats:/)).toBeInTheDocument();
@@ -64,30 +50,30 @@ describe('FileUpload Component', () => {
 
   it('shows batch upload info when supportsBatch is true', () => {
     render(<FileUpload {...defaultProps} />);
-    
+
     expect(screen.getByText(/Maximum files:/)).toBeInTheDocument();
   });
 
   it('hides batch upload info when supportsBatch is false', () => {
     render(<FileUpload {...defaultProps} supportsBatch={false} />);
-    
+
     expect(screen.queryByText(/Maximum files:/)).not.toBeInTheDocument();
   });
 
   it('handles file input change', async () => {
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     render(<FileUpload {...defaultProps} />);
-    
+
     const fileInput = screen.getByRole('button', { hidden: true });
-    
+
     // Simulate file selection
     Object.defineProperty(fileInput, 'files', {
       value: [mockFile],
       writable: false,
     });
-    
+
     fireEvent.change(fileInput);
-    
+
     await waitFor(() => {
       expect(defaultProps.onFilesSelected).toHaveBeenCalled();
     });
@@ -96,25 +82,25 @@ describe('FileUpload Component', () => {
   it('handles drag and drop events', async () => {
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     // Simulate drag enter
     fireEvent.dragEnter(dropZone!, {
       dataTransfer: {
         files: [mockFile]
       }
     });
-    
+
     expect(screen.getByText('Drop files here')).toBeInTheDocument();
-    
+
     // Simulate drop
     fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: [mockFile]
       }
     });
-    
+
     await waitFor(() => {
       expect(defaultProps.onFilesSelected).toHaveBeenCalled();
     });
@@ -123,15 +109,15 @@ describe('FileUpload Component', () => {
   it('displays uploaded files', async () => {
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: [mockFile]
       }
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText('Uploaded Files (1)')).toBeInTheDocument();
       expect(screen.getByText('test.jpg')).toBeInTheDocument();
@@ -141,23 +127,23 @@ describe('FileUpload Component', () => {
   it('allows removing uploaded files', async () => {
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: [mockFile]
       }
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText('test.jpg')).toBeInTheDocument();
     });
-    
+
     // Click remove button
     const removeButton = screen.getByTitle('Remove file');
     fireEvent.click(removeButton);
-    
+
     expect(screen.queryByText('test.jpg')).not.toBeInTheDocument();
     expect(defaultProps.onFilesSelected).toHaveBeenCalledWith([]);
   });
@@ -168,30 +154,30 @@ describe('FileUpload Component', () => {
       new File(['test2'], 'test2.jpg', { type: 'image/jpeg' })
     ];
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: mockFiles
       }
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText('Uploaded Files (2)')).toBeInTheDocument();
     });
-    
+
     // Click clear all button
     const clearButton = screen.getByText('Clear All');
     fireEvent.click(clearButton);
-    
+
     expect(screen.queryByText('Uploaded Files')).not.toBeInTheDocument();
     expect(defaultProps.onFilesSelected).toHaveBeenCalledWith([]);
   });
 
   it('disables upload when disabled prop is true', () => {
     render(<FileUpload {...defaultProps} disabled={true} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
     expect(dropZone).toHaveClass('opacity-50', 'cursor-not-allowed');
   });
@@ -203,18 +189,18 @@ describe('FileUpload Component', () => {
       isValid: false,
       errors: ['File too large', 'Unsupported format']
     });
-    
+
     const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: [mockFile]
       }
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText('Upload Errors')).toBeInTheDocument();
       expect(screen.getByText('• File too large')).toBeInTheDocument();
@@ -225,19 +211,19 @@ describe('FileUpload Component', () => {
   it('shows progress bar for uploading files', async () => {
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     fireEvent.drop(dropZone!, {
       dataTransfer: {
         files: [mockFile]
       }
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText('test.jpg')).toBeInTheDocument();
     });
-    
+
     // Simulate updating file status to uploading
     // This would typically be done by the parent component
     // For now, we just verify the component structure is correct
@@ -246,15 +232,15 @@ describe('FileUpload Component', () => {
 
   it('handles click to select files', () => {
     render(<FileUpload {...defaultProps} />);
-    
+
     const dropZone = screen.getByText('Upload files').closest('div');
-    
+
     // Mock the file input click
     const fileInput = dropZone?.querySelector('input[type="file"]') as HTMLInputElement;
     const clickSpy = jest.spyOn(fileInput, 'click');
-    
+
     fireEvent.click(dropZone!);
-    
+
     expect(clickSpy).toHaveBeenCalled();
   });
 });

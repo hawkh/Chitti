@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "jsx": "preserve", // Let Next.js handle JSX transformations
+    "jsx": "react-jsx", // Let Next.js handle JSX transformations
     "baseUrl": ".", // Base URL for module resolution
     "paths": {
       "@/components/*": [
@@ -52,13 +52,21 @@
         "name": "next" // Next.js-specific TypeScript plugin
       }
     ],
-    "target": "ES2017"
+    "target": "ES2017",
+    "types": [
+      "node",
+      "jest",
+      "react",
+      "react-dom"
+    ]
   },
   "include": [
     "next-env.d.ts", // Next.js environment types
     ".next/types/**/*.ts", // Next.js generated types
     "**/*.ts", // All TypeScript files
     "**/*.tsx" // All TypeScript JSX files
+    ,
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -11,6 +11,8 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  // Tell Next.js 16 to use webpack instead of Turbopack for builds
+  turbopack: {},
   outputFileTracingExcludes: {
     '*': [
       'node_modules/@tensorflow/**',
@@ -40,7 +42,7 @@ const nextConfig = {
       ...config.watchOptions,
       ignored: ['**/microservices/**', '**/python-backend/**', '**/terraform/**', '**/k8s/**'],
     };
-    
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -48,14 +50,14 @@ const nextConfig = {
         child_process: false,
       };
     }
-    
+
     // Exclude heavy dependencies from server bundle
     if (isServer) {
       config.externals = config.externals || [];
       if (Array.isArray(config.externals)) {
         config.externals.push(
           '@tensorflow/tfjs',
-          '@tensorflow/tfjs-core', 
+          '@tensorflow/tfjs-core',
           '@tensorflow/tfjs-backend-cpu',
           '@tensorflow/tfjs-backend-webgl',
           '@prisma/client',
@@ -66,7 +68,7 @@ const nextConfig = {
         );
       }
     }
-    
+
     return config;
   },
 };
