@@ -29,6 +29,9 @@
       ], // Alias for services directory
       "@/context/*": [
         "context/*"
+      ],
+      "@/hooks/*": [
+        "hooks/*"
       ]
     },
     "allowSyntheticDefaultImports": true, // Enable default imports for CommonJS modules
