@@ -10,6 +10,7 @@ export default function DemoPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<DetectionResult | null>(null);
+  const [modelStatus, setModelStatus] = useState<string>('Initializing...');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -17,6 +18,26 @@ export default function DemoPage() {
 
   if (typeof window !== 'undefined' && !detectorRef.current) {
     detectorRef.current = new RealDefectDetector();
+    
+    // Check model status periodically
+    const checkStatus = () => {
+      if (detectorRef.current) {
+        const status = detectorRef.current.getModelStatus();
+        if (status.loaded) {
+          setModelStatus('✅ REAL AI Model Loaded');
+          console.log('🎉 REAL YOLO MODEL IS READY FOR DETECTION!');
+        } else if (status.loading) {
+          setModelStatus('⏳ Loading AI Model...');
+        } else if (status.error) {
+          setModelStatus(`❌ Model Error: ${status.error}`);
+        }
+      }
+    };
+    
+    // Check immediately and then every 500ms for 10 seconds
+    checkStatus();
+    const interval = setInterval(checkStatus, 500);
+    setTimeout(() => clearInterval(interval), 10000);
   }
 
   const sampleImages = [
@@ -36,17 +57,20 @@ export default function DemoPage() {
   const handleDetection = useCallback(async () => {
     if (!imageRef.current || !detectorRef.current) return;
 
+    console.log('🚀 USER CLICKED DETECT BUTTON - Starting detection...');
     setIsProcessing(true);
     try {
+      console.log('📸 Calling detectDefects with image element...');
       const detectionResult = await detectorRef.current!.detectDefects(imageRef.current);
+      console.log('✅ Detection completed! Result:', detectionResult);
       setResult(detectionResult);
       
       setTimeout(() => {
         drawDetections(detectionResult);
       }, 100);
     } catch (error) {
-      console.error('Detection failed:', error);
-      alert('Detection failed. Make sure Python backend is running.');
+      console.error('❌ Detection failed with error:', error);
+      alert('Detection failed: ' + (error as Error).message);
     } finally {
       setIsProcessing(false);
     }
@@ -91,9 +115,18 @@ export default function DemoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-neutral-900 to-stone-950">
       <div className="max-w-7xl mx-auto px-4 py-8">
-
-
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-200 via-orange-100 to-amber-300 bg-clip-text text-transparent mb-8">AI Defect Detection Demo</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-200 via-orange-100 to-amber-300 bg-clip-text text-transparent">AI Defect Detection Demo</h1>
+          <div className={`px-4 py-2 rounded-xl font-semibold text-sm ${
+            modelStatus.includes('✅') 
+              ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' 
+              : modelStatus.includes('⏳')
+              ? 'bg-amber-900/50 text-amber-300 border border-amber-700 animate-pulse'
+              : 'bg-rose-900/50 text-rose-300 border border-rose-700'
+          }`}>
+            {modelStatus}
+          </div>
+        </div>
 
         <div className="flex gap-4 mb-8">
           <button 
@@ -209,6 +242,16 @@ export default function DemoPage() {
             <div className="space-y-4">
               {result ? (
                 <>
+                  <div className="bg-gradient-to-br from-emerald-950/80 to-teal-950/80 rounded-xl p-4 border-2 border-emerald-700/50">
+                    <p className="text-sm text-emerald-400 font-semibold">🤖 AI Detection Mode</p>
+                    <p className="text-lg font-bold text-emerald-100">
+                      REAL TensorFlow.js YOLO
+                    </p>
+                    <p className="text-xs text-emerald-500 mt-1">
+                      Running in browser with WebGL acceleration
+                    </p>
+                  </div>
+                  
                   <div className="bg-gradient-to-br from-zinc-950/80 to-neutral-950/80 rounded-xl p-4 border border-zinc-800">
                     <p className="text-sm text-amber-600">Status</p>
                     <p className="text-lg font-bold text-amber-100">
