@@ -4,8 +4,13 @@ frontend:
     preBuild:
       commands:
         - npm ci
+        - echo "Installing Prisma CLI..."
+        - npm install -g prisma
     build:
       commands:
+        - echo "Generating Prisma Client..."
+        - npx prisma generate
+        - echo "Building Next.js app..."
         - npm run build
   artifacts:
     baseDirectory: .next
@@ -15,3 +20,25 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+      - public/models/**/*
+customHeaders:
+  - pattern: '**/*'
+    headers:
+      - key: 'X-Frame-Options'
+        value: 'DENY'
+      - key: 'X-Content-Type-Options'
+        value: 'nosniff'
+      - key: 'Strict-Transport-Security'
+        value: 'max-age=31536000; includeSubDomains'
+  - pattern: '/models/**/*'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=31536000, immutable'
+      - key: 'Access-Control-Allow-Origin'
+        value: '*'
+      - key: 'Access-Control-Allow-Methods'
+        value: 'GET, OPTIONS'
+  - pattern: '/api/**/*'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache, no-store, must-revalidate'
