@@ -14,13 +14,15 @@ export class RealDefectDetector {
     
     this.isLoading = true;
     try {
-      console.log('🤖 Initializing AI Detection System...');
+      console.log('🤖 Loading YOLO model from /models/yolo-defect-detector/tfjs_model/model.json...');
       await tf.setBackend('webgl');
       await tf.ready();
-      console.log('✅ AI Detection System Ready');
-      this.model = null; // Using optimized detection pipeline
+      
+      this.model = await tf.loadGraphModel('/models/yolo-defect-detector/tfjs_model/model.json');
+      console.log('✅ YOLO Model loaded successfully!');
     } catch (error) {
-      console.error('AI system initialization error:', error);
+      console.error('❌ Failed to load YOLO model:', error);
+      this.model = null;
     } finally {
       this.isLoading = false;
     }
@@ -35,7 +37,7 @@ export class RealDefectDetector {
     }
 
     if (!this.model) {
-      console.log('🔍 Running AI defect detection...');
+      console.log('⚠️ Model not loaded, using fallback detection');
       return this.generateMockResult(imageElement);
     }
 
