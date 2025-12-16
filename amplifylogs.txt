@@ -1,0 +1,167 @@
+025-12-16T07:12:13.869Z [INFO]: # Build environment configured with Standard build compute type: 8GiB Memory, 4vCPUs, 128GB Disk Space
+
+1
+
+2025-12-16T07:12:14.536Z [INFO]: # Cloning repository: git@github.com:hawkh/Chitti.git
+
+2
+
+2025-12-16T07:12:21.696Z [INFO]: 
+
+3
+
+2025-12-16T07:12:21.789Z [INFO]: Cloning into 'Chitti'...
+
+4
+
+                                 Updating files:  84% (590/698)
+Updating files:  85% (594/698)
+Updating files:  86% (601/698)
+Updating files:  87% (608/698)
+Updating files:  88% (615/698)
+Updating files:  89% (622/698)
+Updating files:  90% (629/698)
+Updating files:  91% (636/698)
+Updating files:  92% (643/698)
+Updating files:  93% (650/698)
+Updating files:  94% (657/698)
+Updating files:  95% (664/698)
+Updating files:  95% (668/698)
+Updating files:  96% (671/698)
+Updating files:  97% (678/698)
+Updating files:  98% (685/698)
+Updating files:  99% (692/698)
+Updating files: 100% (698/698)
+Updating files: 100% (698/698), done.
+
+5
+
+2025-12-16T07:12:21.790Z [INFO]: # Switching to commit: ee38235d95d5947a424a3068910bf4240db89a9e
+
+6
+
+2025-12-16T07:12:22.337Z [INFO]: Note: switching to 'ee38235d95d5947a424a3068910bf4240db89a9e'.
+
+7
+
+                                 You are in 'detached HEAD' state. You can look around, make experimental
+
+8
+
+                                 changes and commit them, and you can discard any commits you make in this
+
+9
+
+                                 state without impacting any branches by switching back to a branch.
+
+10
+
+                                 If you want to create a new branch to retain commits you create, you may
+
+11
+
+                                 do so (now or later) by using -c with the switch command. Example:
+
+12
+
+                                 git switch -c <new-branch-name>
+
+13
+
+                                 Or undo this operation with:
+
+14
+
+                                 git switch -
+
+15
+
+                                 Turn off this advice by setting config variable advice.detachedHead to false
+
+16
+
+                                 HEAD is now at ee38235 amplify config
+
+17
+
+2025-12-16T07:12:22.387Z [INFO]: Successfully cleaned up Git credentials
+
+18
+
+2025-12-16T07:12:22.388Z [INFO]: # Checking for Git submodules at: /codebuild/output/src723179852/src/Chitti/.gitmodules
+
+19
+
+2025-12-16T07:12:22.399Z [INFO]: # Retrieving environment cache...
+
+20
+
+2025-12-16T07:12:22.440Z [WARNING]: ! Unable to write cache: {"code":"ERR_BAD_REQUEST","message":"Request failed with status code 404"})}
+
+21
+
+2025-12-16T07:12:22.441Z [INFO]: ---- Setting Up SSM Secrets ----
+
+22
+
+2025-12-16T07:12:22.441Z [INFO]: SSM params {"Path":"/amplify/d3basuahvviq0w/main/","WithDecryption":true}
+
+23
+
+2025-12-16T07:12:22.497Z [WARNING]: !Failed to set up process.env.secrets
+
+24
+
+2025-12-16T07:12:23.309Z [INFO]: # No package override configuration found.
+
+25
+
+2025-12-16T07:12:23.313Z [INFO]: # Retrieving cache...
+
+26
+
+2025-12-16T07:12:43.103Z [INFO]: # Extracting cache...
+
+27
+
+2025-12-16T07:13:36.596Z [INFO]: # Extraction completed
+
+28
+
+2025-12-16T07:13:36.881Z [INFO]: # Retrieved cache
+
+29
+
+2025-12-16T07:13:42.547Z [INFO]: ## Starting Backend Build
+
+30
+
+                                 ## Checking for associated backend environment...
+
+31
+
+                                 ## No backend environment association found, continuing...
+
+32
+
+                                 ## Completed Backend Build
+
+33
+
+2025-12-16T07:13:42.552Z [INFO]: {"backendDuration": 0}
+
+34
+
+                                 ## Starting Frontend Build
+
+35
+
+                                 # Starting phase: preBuild
+
+36
+
+                                 # Executing command: npm ci
+
+37
+
+2025-12-16T07:14:05.735Z [WARNING]: npm error code EUSAGE
