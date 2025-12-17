@@ -7,7 +7,7 @@ export class RealDefectDetector {
   private loadError: string | null = null;
 
   constructor() {
-    console.log('🚀 RealDefectDetector initialized - starting YOLOv11 model load...');
+    console.log('🚀 RealDefectDetector initialized - starting YOLOv12l weld defect model load...');
     this.loadModel();
   }
 
@@ -18,7 +18,7 @@ export class RealDefectDetector {
     }
     
     this.isLoading = true;
-    console.log('🔄 Starting TensorFlow.js YOLOv11 model load process...');
+    console.log('🔄 Starting TensorFlow.js YOLOv12l weld defect model load process...');
     
     try {
       // Initialize TensorFlow.js backend
@@ -29,11 +29,12 @@ export class RealDefectDetector {
       
       // Load the model
       const modelPath = '/models/yolo-defect-detector/tfjs_model/model.json';
-      console.log('📦 Loading YOLOv11 model from:', modelPath);
+      console.log('📦 Loading YOLOv12l weld defect model from:', modelPath);
+      console.log('📋 Model trained on 3 classes: Bad Weld, Good Weld, Defect');
       
       this.model = await tf.loadGraphModel(modelPath);
       
-      console.log('✅ YOLOv11 Model loaded successfully!');
+      console.log('✅ YOLOv12l Model loaded successfully!');
       console.log('📊 Model info:', {
         inputs: this.model.inputs.map(i => ({ name: i.name, shape: i.shape })),
         outputs: this.model.outputs.map(o => ({ name: o.name, shape: o.shape }))
@@ -94,7 +95,7 @@ export class RealDefectDetector {
       });
 
       // Run inference
-      console.log('🧠 Running REAL YOLOv11 inference with TensorFlow.js...');
+      console.log('🧠 Running REAL YOLOv12l inference with TensorFlow.js...');
       const inferenceStart = Date.now();
       const predictions = await this.model.executeAsync(inputTensor) as tf.Tensor;
       const inferenceTime = Date.now() - inferenceStart;
@@ -102,7 +103,7 @@ export class RealDefectDetector {
       console.log('📊 Prediction tensor shape:', Array.isArray(predictions) ? predictions.map(p => p.shape) : predictions.shape);
       
       // Process YOLO output
-      console.log('🔬 Processing YOLOv11 output...');
+      console.log('🔬 Processing YOLOv12l output (3 classes: Bad Weld, Good Weld, Defect)...');
       const detections = await this.processYOLOv11Output(predictions, width, height);
       
       // Cleanup tensors
@@ -134,6 +135,20 @@ export class RealDefectDetector {
     const data = await predArray.array() as any;
     console.log('📊 Raw data structure:', Array.isArray(data) ? `Array[${data.length}]` : typeof data);
     
+    // Log first few values to understand the data structure
+    if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data[0])) {
+        console.log('📊 First dimension length:', data.length);
+        console.log('📊 Second dimension length:', data[0].length);
+        if (Array.isArray(data[0][0])) {
+          console.log('📊 Third dimension length:', data[0][0].length);
+          console.log('📊 Sample values [0][0][0-5]:', data[0][0].slice(0, 6));
+        } else {
+          console.log('📊 Sample values [0][0-5]:', data[0].slice(0, 6));
+        }
+      }
+    }
+    
     const detections: any[] = [];
     const confidenceThreshold = 0.20; // Lower threshold for YOLOv11
     const iouThreshold = 0.45;
@@ -158,34 +173,78 @@ export class RealDefectDetector {
     
     let rawDetections: any[] = [];
     
-    // YOLOv11 can output in different formats:
-    // Format 1: [7, 8400] - [x, y, w, h, conf, class_id, ?]
-    // Format 2: [num_classes+4, 8400] - traditional YOLO format
+    // YOLO output formats (metadata shows nms: false, so raw predictions):
+    // Format 1: [batch, num_detections, num_features] - e.g., [1, 8400, 7] where 7 = [x, y, w, h, conf_class0, conf_class1, conf_class2]
+    // Format 2: [batch, num_features, num_detections] - e.g., [1, 7, 8400] transposed version
+    // Format 3: [num_features, num_detections] - e.g., [7, 8400] without batch dimension
     
-    if (firstDim === 7 && secondDim > 1000) {
-      // YOLOv11 new format: [7, num_detections]
-      console.log('🎯 Detected YOLOv11 format: [7, num_detections]');
-      console.log('   Format: [x, y, w, h, confidence, class_id, ?]');
+    // Check if we have 3 dimensions [batch, ?, ?]
+    if (Array.isArray(outputData[0]) && Array.isArray(outputData[0][0])) {
+      const batchSize = outputData.length;
+      const dim2 = outputData[0].length;
+      const dim3 = outputData[0][0].length;
+      console.log(`🎯 Detected 3D format: [${batchSize}, ${dim2}, ${dim3}]`);
       
-      for (let i = 0; i < secondDim; i++) {
-        const cx = outputData[0][i];
-        const cy = outputData[1][i];
-        const w = outputData[2][i];
-        const h = outputData[3][i];
-        const conf = outputData[4][i];
-        const classId = Math.round(outputData[5][i]);
+      // Use first batch
+      const batchData = outputData[0];
+      
+      // Format: [num_detections, num_features] where num_features = 4 + num_classes
+      if (dim3 === 7 || dim3 === 3 + 4) {
+        console.log('🎯 Format: [batch, num_detections, features] - each detection has [x, y, w, h, class0, class1, class2]');
         
-        if (conf > confidenceThreshold && classId >= 0 && classId < 3) {
-          rawDetections.push({ cx, cy, w, h, conf, classId });
+        for (let i = 0; i < dim2; i++) {
+          const detection = batchData[i];
+          const cx = detection[0];
+          const cy = detection[1];
+          const w = detection[2];
+          const h = detection[3];
+          
+          // Find max class confidence
+          let maxConf = 0;
+          let maxClassId = 0;
+          for (let j = 4; j < detection.length; j++) {
+            if (detection[j] > maxConf) {
+              maxConf = detection[j];
+              maxClassId = j - 4;
+            }
+          }
+          
+          if (maxConf > confidenceThreshold && maxClassId >= 0 && maxClassId < 3) {
+            rawDetections.push({ cx, cy, w, h, conf: maxConf, classId: maxClassId });
+          }
+        }
+      }
+      // Format: [num_features, num_detections]
+      else if (dim2 === 7 || dim2 === 3 + 4) {
+        console.log('🎯 Format: [batch, features, num_detections] - transposed');
+        
+        for (let i = 0; i < dim3; i++) {
+          const cx = batchData[0][i];
+          const cy = batchData[1][i];
+          const w = batchData[2][i];
+          const h = batchData[3][i];
+          
+          // Find max class confidence
+          let maxConf = 0;
+          let maxClassId = 0;
+          for (let j = 4; j < dim2; j++) {
+            if (batchData[j][i] > maxConf) {
+              maxConf = batchData[j][i];
+              maxClassId = j - 4;
+            }
+          }
+          
+          if (maxConf > confidenceThreshold && maxClassId >= 0 && maxClassId < 3) {
+            rawDetections.push({ cx, cy, w, h, conf: maxConf, classId: maxClassId });
+          }
         }
       }
       console.log(`✅ Found ${rawDetections.length} detections above threshold ${confidenceThreshold}`);
       
-    } else if (firstDim < 20 && secondDim > 1000) {
-      // Traditional YOLO format: [num_classes+4, num_detections]
-      const numClasses = firstDim - 4;
-      console.log(`🎯 Detected traditional YOLO format: [${firstDim} features, ${secondDim} detections]`);
-      console.log(`   Classes: ${numClasses}`);
+    } else if (firstDim === 7 && secondDim > 1000) {
+      // 2D Format: [7, num_detections] - [x, y, w, h, class0, class1, class2]
+      console.log('🎯 Detected 2D format: [7, num_detections]');
+      console.log('   Format: [x, y, w, h, class0_conf, class1_conf, class2_conf]');
       
       for (let i = 0; i < secondDim; i++) {
         const cx = outputData[0][i];
@@ -196,7 +255,7 @@ export class RealDefectDetector {
         // Find max class confidence
         let maxConf = 0;
         let maxClassId = 0;
-        for (let j = 4; j < firstDim; j++) {
+        for (let j = 4; j < 7; j++) {
           if (outputData[j][i] > maxConf) {
             maxConf = outputData[j][i];
             maxClassId = j - 4;
@@ -210,8 +269,8 @@ export class RealDefectDetector {
       console.log(`✅ Found ${rawDetections.length} detections above threshold ${confidenceThreshold}`);
       
     } else {
-      console.error('❌ Unexpected YOLOv11 output format:', firstDim, 'x', secondDim);
-      console.error('Expected: [7, 8400] or [num_classes+4, 8400]');
+      console.error('❌ Unexpected YOLO output format:', firstDim, 'x', secondDim);
+      console.error('Expected: [1, 8400, 7] or [1, 7, 8400] or [7, 8400]');
       return [];
     }
     
@@ -221,21 +280,30 @@ export class RealDefectDetector {
     console.log(`✅ After NMS: ${nmsDetections.length} detections`);
     
     // Convert to final format with pixel coordinates
+    // YOLO outputs coordinates normalized to input size (640x640), need to scale to original image
     for (const det of nmsDetections) {
-      // YOLOv11 outputs normalized coordinates [0-1]
+      // Coordinates are normalized [0-1] relative to 640x640 input
+      // Convert center-based (cx, cy, w, h) to corner-based (x, y, w, h)
       const x = (det.cx - det.w / 2) * imgWidth;
       const y = (det.cy - det.h / 2) * imgHeight;
       const width = det.w * imgWidth;
       const height = det.h * imgHeight;
       
-      // Validate bbox
-      if (x >= 0 && y >= 0 && width > 0 && height > 0) {
-        detections.push({
-          bbox: [Math.max(0, x), Math.max(0, y), Math.min(width, imgWidth - x), Math.min(height, imgHeight - y)],
-          confidence: det.conf,
-          classId: det.classId,
-          className: this.getClassName(det.classId)
-        });
+      // Validate and clamp bbox to image bounds
+      if (width > 0 && height > 0) {
+        const clampedX = Math.max(0, Math.min(x, imgWidth));
+        const clampedY = Math.max(0, Math.min(y, imgHeight));
+        const clampedW = Math.min(width, imgWidth - clampedX);
+        const clampedH = Math.min(height, imgHeight - clampedY);
+        
+        if (clampedW > 0 && clampedH > 0) {
+          detections.push({
+            bbox: [clampedX, clampedY, clampedW, clampedH],
+            confidence: det.conf,
+            classId: det.classId,
+            className: this.getClassName(det.classId)
+          });
+        }
       }
     }
     
