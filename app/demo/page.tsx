@@ -55,19 +55,60 @@ export default function DemoPage() {
   };
 
   const handleDetection = useCallback(async () => {
-    if (!imageRef.current || !detectorRef.current) return;
+    if (!imageRef.current) return;
 
     console.log('🚀 USER CLICKED DETECT BUTTON - Starting detection...');
     setIsProcessing(true);
+    
     try {
-      console.log('📸 Calling detectDefects with image element...');
-      const detectionResult = await detectorRef.current!.detectDefects(imageRef.current);
-      console.log('✅ Detection completed! Result:', detectionResult);
-      setResult(detectionResult);
+      // Try Lambda backend first (real PyTorch YOLO)
+      console.log('📡 Trying AWS Lambda backend (real PyTorch YOLO)...');
       
-      setTimeout(() => {
-        drawDetections(detectionResult);
-      }, 100);
+      // Convert image to base64
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
+      
+      canvas.width = imageRef.current.naturalWidth || imageRef.current.width;
+      canvas.height = imageRef.current.naturalHeight || imageRef.current.height;
+      ctx.drawImage(imageRef.current, 0, 0);
+      
+      const imageData = canvas.toDataURL('image/jpeg', 0.9);
+      
+      // Call Lambda backend
+      const lambdaResponse = await fetch('/api/detect-real', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData })
+      });
+      
+      if (lambdaResponse.ok) {
+        const lambdaResult = await lambdaResponse.json();
+        console.log('✅ Lambda detection successful:', lambdaResult);
+        
+        if (lambdaResult.success && lambdaResult.detections) {
+          // Convert Lambda format to our format
+          const detectionResult = convertLambdaToResult(lambdaResult, canvas.width, canvas.height);
+          setResult(detectionResult);
+          setTimeout(() => drawDetections(detectionResult), 100);
+          setIsProcessing(false);
+          return;
+        }
+      }
+      
+      console.log('⚠️ Lambda backend not available, falling back to browser TFJS...');
+      
+      // Fallback to browser-based TFJS detection
+      if (detectorRef.current) {
+        console.log('📸 Using browser TFJS YOLO model...');
+        const detectionResult = await detectorRef.current.detectDefects(imageRef.current);
+        console.log('✅ TFJS Detection completed! Result:', detectionResult);
+        setResult(detectionResult);
+        setTimeout(() => drawDetections(detectionResult), 100);
+      } else {
+        throw new Error('No detection method available');
+      }
+      
     } catch (error) {
       console.error('❌ Detection failed with error:', error);
       alert('Detection failed: ' + (error as Error).message);
@@ -75,6 +116,32 @@ export default function DemoPage() {
       setIsProcessing(false);
     }
   }, []);
+  
+  const convertLambdaToResult = (lambdaResult: any, width: number, height: number) => {
+    const detections = lambdaResult.detections.map((det: any, index: number) => {
+      const [x, y, w, h] = det.bbox;
+      return {
+        id: `defect_${Date.now()}_${index}`,
+        type: det.class_name.toLowerCase().replace(' ', '_'),
+        confidence: det.confidence,
+        location: { x, y, width: w, height: h },
+        severity: det.class_name === 'Bad Weld' ? 'high' : det.class_name === 'Defect' ? 'medium' : 'low',
+        description: `${det.class_name} detected with ${(det.confidence * 100).toFixed(1)}% confidence`,
+        affectedArea: (w * h) / (width * height) * 100
+      };
+    });
+    
+    return {
+      id: `result_${Date.now()}`,
+      fileName: 'capture.jpg',
+      defects: detections,
+      detectedDefects: detections,
+      overallStatus: detections.some((d: any) => d.severity === 'high') ? 'fail' : detections.length > 0 ? 'review' : 'pass',
+      processingTime: 0,
+      timestamp: new Date(),
+      metadata: { imageSize: { width, height }, fileSize: 0, format: 'image/jpeg' }
+    };
+  };
 
   const drawDetections = (detectionResult: DetectionResult) => {
     const canvas = canvasRef.current;
