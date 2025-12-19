@@ -1,10 +1,11 @@
 /**
  * Real YOLO Detection API Route
- * Uses AWS Lambda backend for actual AI inference
+ * Uses AWS ECS backend (primary) or Lambda (fallback) for actual AI inference
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
+const ECS_URL = process.env.NEXT_PUBLIC_WELD_API_URL || 'http://23.22.163.148:10000';
 const LAMBDA_URL = process.env.NEXT_PUBLIC_YOLO_API_URL || 'https://vimr4uemw3ft4b4t3edqocw6ni0iuxpu.lambda-url.us-east-1.on.aws/';
 
 export async function POST(request: NextRequest) {
@@ -22,9 +23,40 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Try AWS ECS backend first (primary)
+    try {
+      console.log('📤 Sending image to AWS ECS backend...');
+      
+      const ecsResponse = await fetch(`${ECS_URL}/detect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image }),
+      });
+      
+      if (ecsResponse.ok) {
+        const result = await ecsResponse.json();
+        console.log(`✅ ECS response: ${result.detections?.length || 0} detections found`);
+        
+        // Convert ECS format to Lambda format for compatibility
+        return NextResponse.json({
+          success: true,
+          detections: result.detections || [],
+          num_detections: result.detections?.length || 0,
+          backend: 'aws-ecs',
+          demo_mode: result.demo_mode || false
+        });
+      }
+      
+      console.log('⚠️ ECS backend unavailable, trying Lambda fallback...');
+    } catch (ecsError: any) {
+      console.log(`⚠️ ECS error (${ecsError.message}), trying Lambda fallback...`);
+    }
+    
+    // Fallback to Lambda
     console.log('📤 Sending image to Lambda...');
     
-    // Call Lambda function
     const response = await fetch(LAMBDA_URL, {
       method: 'POST',
       headers: {
@@ -37,7 +69,7 @@ export async function POST(request: NextRequest) {
       const errorText = await response.text();
       console.error('❌ Lambda error:', errorText);
       return NextResponse.json(
-        { success: false, error: `Lambda error: ${response.status}` },
+        { success: false, error: `Both backends failed: ${response.status}` },
         { status: response.status }
       );
     }
@@ -60,7 +92,10 @@ export async function GET() {
   return NextResponse.json({
     status: 'healthy',
     service: 'yolo-detection-proxy',
-    backend: LAMBDA_URL,
+    backends: {
+      primary: ECS_URL,
+      fallback: LAMBDA_URL
+    },
     message: 'POST an image to /api/detect-real for detection'
   });
 }
