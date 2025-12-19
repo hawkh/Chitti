@@ -8,20 +8,41 @@ import io
 import base64
 import uvicorn
 import os
+import urllib.request
 
 model = None
+
+def download_model_from_s3():
+    """Download model from S3 if not present locally"""
+    model_url = "https://chitti-model-files-839690183659.s3.us-east-1.amazonaws.com/weldmodel.pt"
+    model_path = "weldmodel.pt"
+    
+    if not os.path.exists(model_path):
+        try:
+            print(f'📥 Downloading model from S3...')
+            urllib.request.urlretrieve(model_url, model_path)
+            print(f'✅ Model downloaded successfully')
+            return True
+        except Exception as e:
+            print(f'❌ Failed to download model: {e}')
+            return False
+    return True
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model
     try:
-        # Try best-model.pt first
-        if os.path.exists('best-model.pt'):
+        # Try to download model from S3 if not present
+        download_model_from_s3()
+        
+        # Try weldmodel.pt first (User Priority)
+        if os.path.exists('weldmodel.pt'):
+            model = YOLO('weldmodel.pt')
+            print('✅ Model loaded successfully: weldmodel.pt')
+        # Then try best-model.pt
+        elif os.path.exists('best-model.pt'):
             model = YOLO('best-model.pt')
             print('✅ Model loaded successfully: best-model.pt')
-        elif os.path.exists('best (5).pt'):
-            model = YOLO('best (5).pt')
-            print('✅ Model loaded successfully: best (5).pt')
         elif os.path.exists('best.pt'):
             model = YOLO('best.pt')
             print('✅ Model loaded successfully: best.pt')
@@ -30,7 +51,7 @@ async def lifespan(app: FastAPI):
             model = None
         
         if model:
-            model.conf = 0.5
+            model.conf = 0.15  # Lower threshold to detect more defects (15%)
             model.iou = 0.45
     except Exception as e:
         print(f'❌ Error loading model: {e}')

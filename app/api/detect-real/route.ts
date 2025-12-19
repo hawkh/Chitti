@@ -5,7 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const ECS_URL = process.env.NEXT_PUBLIC_WELD_API_URL || 'http://23.22.163.148:10000';
+const LOCAL_BACKEND_URL = process.env.NEXT_PUBLIC_LOCAL_BACKEND_URL || 'http://localhost:5001';
+const ECS_URL = process.env.NEXT_PUBLIC_WELD_API_URL || 'http://54.173.250.64:10000';
 const LAMBDA_URL = process.env.NEXT_PUBLIC_YOLO_API_URL || 'https://vimr4uemw3ft4b4t3edqocw6ni0iuxpu.lambda-url.us-east-1.on.aws/';
 
 export async function POST(request: NextRequest) {
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Try AWS ECS backend first (primary)
+    // Try AWS ECS backend (primary)
     try {
       console.log('📤 Sending image to AWS ECS backend...');
       
@@ -39,7 +40,6 @@ export async function POST(request: NextRequest) {
         const result = await ecsResponse.json();
         console.log(`✅ ECS response: ${result.detections?.length || 0} detections found`);
         
-        // Convert ECS format to Lambda format for compatibility
         return NextResponse.json({
           success: true,
           detections: result.detections || [],
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       const errorText = await response.text();
       console.error('❌ Lambda error:', errorText);
       return NextResponse.json(
-        { success: false, error: `Both backends failed: ${response.status}` },
+        { success: false, error: `All backends failed: ${response.status}` },
         { status: response.status }
       );
     }
@@ -93,6 +93,7 @@ export async function GET() {
     status: 'healthy',
     service: 'yolo-detection-proxy',
     backends: {
+      local: LOCAL_BACKEND_URL,
       primary: ECS_URL,
       fallback: LAMBDA_URL
     },

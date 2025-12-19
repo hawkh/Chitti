@@ -7,11 +7,28 @@ export class RealDefectDetector {
   private loadError: string | null = null;
 
   constructor() {
+    // Check if TFJS is disabled via environment variable
+    const disableTFJS = process.env.NEXT_PUBLIC_DISABLE_TFJS === 'true';
+    
+    if (disableTFJS) {
+      console.log('⚠️ TFJS model loading DISABLED - using backend API only');
+      this.loadError = 'TFJS disabled - using backend API';
+      return;
+    }
+    
     console.log('🚀 RealDefectDetector initialized - starting YOLOv12l weld defect model load...');
     this.loadModel();
   }
 
   private async loadModel() {
+    // Double check if TFJS is disabled
+    const disableTFJS = process.env.NEXT_PUBLIC_DISABLE_TFJS === 'true';
+    if (disableTFJS) {
+      console.log('⚠️ TFJS model loading DISABLED - skipping');
+      this.loadError = 'TFJS disabled - using backend API';
+      return;
+    }
+    
     if (this.model || this.isLoading) {
       console.log('⏭️ Model already loaded or loading, skipping...');
       return;
@@ -70,8 +87,16 @@ export class RealDefectDetector {
 
     if (!this.model) {
       console.warn('⚠️ REAL MODEL NOT AVAILABLE - Reason:', this.loadError || 'Unknown');
-      console.warn('⚠️ Falling back to mock detections');
-      return this.generateMockResult(imageElement);
+      console.log('🌐 Attempting to use backend API instead...');
+      
+      // Try backend API before falling back to mocks
+      try {
+        return await this.detectWithBackendAPI(imageElement);
+      } catch (apiError: any) {
+        console.error('❌ Backend API failed:', apiError.message);
+        console.warn('⚠️ Falling back to mock detections');
+        return this.generateMockResult(imageElement);
+      }
     }
 
     try {
@@ -426,6 +451,114 @@ export class RealDefectDetector {
         imageSize: { width, height },
         fileSize: 0,
         format: 'image/jpeg'
+      }
+    };
+  }
+
+  private async detectWithBackendAPI(imageElement: HTMLImageElement): Promise<DetectionResult> {
+    const startTime = Date.now();
+    console.log('🌐 Using backend API for detection...');
+    
+    const width = imageElement.naturalWidth || imageElement.width;
+    const height = imageElement.naturalHeight || imageElement.height;
+    
+    // Convert image to base64
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas context');
+    
+    ctx.drawImage(imageElement, 0, 0);
+    const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+    
+    console.log('📤 Sending image to backend API...');
+    
+    // Call the backend API
+    const response = await fetch('/api/detect-real', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image: base64Image }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Backend API returned ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Backend API response:', result);
+    
+    if (!result.success && result.success !== undefined) {
+      throw new Error(result.error || 'Backend API failed');
+    }
+    
+    const detections = result.detections || [];
+    console.log(`🎯 Backend found ${detections.length} detections`);
+    
+    // Convert backend format to our format
+    const detectedDefects: DetectedDefect[] = detections.map((det: any, index: number) => {
+      const bbox = det.bbox || det.bounding_box || [0, 0, 100, 100];
+      const [x, y, w, h] = bbox;
+      const className = det.class || det.className || 'Defect';
+      const confidence = det.confidence || det.conf || 0.5;
+      
+      let severity = DefectSeverity.LOW;
+      if (className === 'Bad Weld' || className.toLowerCase().includes('bad')) {
+        severity = DefectSeverity.HIGH;
+      } else if (className === 'Defect' || className.toLowerCase().includes('defect')) {
+        severity = DefectSeverity.MEDIUM;
+      }
+
+      return {
+        id: `defect_${Date.now()}_${index}`,
+        defectType: {
+          id: className.toLowerCase().replace(' ', '_'),
+          name: className,
+          description: `Detected ${className}`,
+          category: 'visual',
+          severity
+        },
+        confidence,
+        boundingBox: { x, y, width: w, height: h },
+        severity,
+        description: `${className} detected with ${(confidence * 100).toFixed(1)}% confidence`,
+        affectedArea: (w * h) / (width * height) * 100
+      };
+    });
+
+    let overallStatus: ResultStatus = ResultStatus.PASS;
+    if (detectedDefects.some(d => d.defectType.name === 'Bad Weld' || d.defectType.name === 'Defect')) {
+      overallStatus = ResultStatus.FAIL;
+    } else if (detectedDefects.length > 0) {
+      overallStatus = ResultStatus.REVIEW;
+    }
+
+    const processingTime = Date.now() - startTime;
+    console.log(`✅ Backend API detection complete in ${processingTime}ms`);
+
+    return {
+      id: `result_${Date.now()}`,
+      fileName: 'capture.jpg',
+      defects: detectedDefects.map(d => ({
+        id: d.id,
+        type: d.defectType.id as DefectType,
+        confidence: d.confidence,
+        location: d.boundingBox,
+        severity: d.severity,
+        description: d.description,
+        affectedArea: d.affectedArea
+      })),
+      detectedDefects,
+      overallStatus,
+      processingTime,
+      timestamp: new Date(),
+      metadata: {
+        imageSize: { width, height },
+        fileSize: 0,
+        format: 'image/jpeg',
+        backend: result.backend || 'api'
       }
     };
   }
