@@ -1,7 +1,7 @@
 // AI Model Loading and Management Service
 
 import * as tf from '@tensorflow/tfjs';
-import { DetectionConfig, DetectionResult, Defect, DefectType, SeverityLevel, BoundingBox, ResultStatus } from '../../types';
+import { DetectionConfig, DetectionResult, Defect, DefectType, SeverityLevel, BoundingBox, ResultStatus, DetectedDefect, DefectTypeInfo } from '../../types';
 import { IdGenerator, DefectUtils } from '../../lib/utils';
 
 export interface ModelMetadata {
@@ -148,12 +148,13 @@ export class ModelLoader {
 
       // Convert detections to our format
       const defects = detections.map(detection => this.convertToDefect(detection, config));
+      const detectedDefects = defects.map(defect => this.convertDefectToDetectedDefect(defect));
 
       const result: DetectionResult = {
         id: IdGenerator.generateResultId(),
         fileName: 'processed_image',
         defects,
-        detectedDefects: [], // TODO: Convert defects to DetectedDefect format
+        detectedDefects,
         overallStatus: defects.length > 0 ? ResultStatus.FAIL : ResultStatus.PASS,
         processingTime,
         timestamp: new Date()
@@ -325,6 +326,52 @@ export class ModelLoader {
       description: DefectUtils.getDefectDescription(defectType),
       affectedArea: DefectUtils.calculateAffectedArea(boundingBox, 1000, 1000) // Will be updated with actual image dimensions
     };
+  }
+
+  private convertDefectToDetectedDefect(defect: Defect): DetectedDefect {
+    const defectTypeInfo: DefectTypeInfo = {
+      id: `${defect.type}-001`,
+      name: this.getDefectDisplayName(defect.type),
+      description: defect.description,
+      category: this.getDefectCategory(defect.type),
+      severity: defect.severity
+    };
+
+    return {
+      id: defect.id,
+      defectType: defectTypeInfo,
+      confidence: defect.confidence,
+      boundingBox: defect.location,
+      severity: defect.severity,
+      description: defect.description,
+      affectedArea: defect.affectedArea
+    };
+  }
+
+  private getDefectDisplayName(defectType: DefectType): string {
+    const names: Record<DefectType, string> = {
+      [DefectType.CRACK]: 'Crack',
+      [DefectType.CORROSION]: 'Corrosion',
+      [DefectType.DEFORMATION]: 'Deformation',
+      [DefectType.SURFACE_IRREGULARITY]: 'Surface Irregularity',
+      [DefectType.INCLUSION]: 'Inclusion',
+      [DefectType.VOID]: 'Void',
+      [DefectType.DIMENSIONAL_VARIANCE]: 'Dimensional Variance'
+    };
+    return names[defectType] || 'Unknown Defect';
+  }
+
+  private getDefectCategory(defectType: DefectType): string {
+    const categories: Record<DefectType, string> = {
+      [DefectType.CRACK]: 'structural',
+      [DefectType.CORROSION]: 'surface',
+      [DefectType.DEFORMATION]: 'dimensional',
+      [DefectType.SURFACE_IRREGULARITY]: 'surface',
+      [DefectType.INCLUSION]: 'material',
+      [DefectType.VOID]: 'structural',
+      [DefectType.DIMENSIONAL_VARIANCE]: 'dimensional'
+    };
+    return categories[defectType] || 'unknown';
   }
 
   isModelLoaded(): boolean {
